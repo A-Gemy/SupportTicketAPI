@@ -1,4 +1,7 @@
+using SupportTicketAPI.DataAccess;
+using SupportTicketAPI.DataAccess.Interfaces;
 using SupportTicketAPI.Security;
+using SupportTicketAPI.Services;
 using SupportTicketAPI.Services.Interfaces;
 
 namespace SupportTicketAPI
@@ -17,6 +20,8 @@ namespace SupportTicketAPI
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+            builder.Services.AddScoped<IUserDataAccess, UserDataAccess>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             var app = builder.Build();
 
