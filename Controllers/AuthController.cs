@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SupportTicketAPI.DTOs.Auth;
 using SupportTicketAPI.Services.Interfaces;
+using System.Security.Claims;
 
 namespace SupportTicketAPI.Controllers
 {
@@ -63,6 +65,26 @@ namespace SupportTicketAPI.Controllers
                 result.IsSuccess,
                 result.Message,
                 Data = result.Data
+            });
+        }
+
+
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var fullName = User.FindFirstValue(ClaimTypes.Name);
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            return Ok(new
+            {
+                UserId = userId,
+                FullName = fullName,
+                Email = email,
+                Role = role
             });
         }
 
