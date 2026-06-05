@@ -15,6 +15,8 @@ namespace SupportTicketAPI.Controllers
             _authService = authService;
         }
 
+
+
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -36,6 +38,31 @@ namespace SupportTicketAPI.Controllers
                 result.IsSuccess,
                 result.Message,
                 UserId = result.Data
+            });
+        }
+
+
+
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Login(LoginRequest request)
+        {
+            var result = await _authService.LoginAsync(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                User = result.Data
             });
         }
 

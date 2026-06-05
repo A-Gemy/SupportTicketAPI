@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using SupportTicketAPI.Common;
 using SupportTicketAPI.DataAccess.Interfaces;
+using SupportTicketAPI.Models;
 using System.Data;
 
 namespace SupportTicketAPI.DataAccess
@@ -44,6 +45,36 @@ namespace SupportTicketAPI.DataAccess
             }
 
             return ServiceResult<int>.Failure("Registration failed.");
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_GetUserByEmail", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@Email", email);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                    FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                    Email = reader.GetString(reader.GetOrdinal("Email")),
+                    PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                    Role = reader.GetString(reader.GetOrdinal("Role")),
+                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                };
+            }
+
+            return null;
         }
 
     }
