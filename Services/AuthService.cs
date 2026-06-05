@@ -9,11 +9,17 @@ namespace SupportTicketAPI.Services
     {
         private readonly IUserDataAccess _userDataAccess;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly ITokenService _tokenService;
 
-        public AuthService(IUserDataAccess userDataAccess, IPasswordHasher passwordHasher)
+        public AuthService(
+            IUserDataAccess userDataAccess,
+            IPasswordHasher passwordHasher,
+            ITokenService tokenService
+            )
         {
             _userDataAccess = userDataAccess;
             _passwordHasher = passwordHasher;
+            _tokenService = tokenService;
         }
 
         public async Task<ServiceResult<int>> RegisterCustomerAsync(RegisterRequest request)
@@ -66,12 +72,18 @@ namespace SupportTicketAPI.Services
             if (!isPasswordValid)
                 return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
 
+
+            string accessToken = _tokenService.GenerateToken(user);
+            DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
+
             var loginResponse = new LoginResponse
             {
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessTokenExpiresAt
             };
 
             return ServiceResult<LoginResponse>.Success(loginResponse, "Login succeeded.");
