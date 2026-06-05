@@ -40,39 +40,41 @@ namespace SupportTicketAPI.Services
 
         }
 
-        public async Task<ServiceResult<object>> LoginAsync(LoginRequest request)
+        public async Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequest request)
         {
             if (request == null)
-                return ServiceResult<object>.Failure("Invalid request.");
+                return ServiceResult<LoginResponse>.Failure("Invalid request.");
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return ServiceResult<object>.Failure("Email is required.");
+                return ServiceResult<LoginResponse>.Failure("Email is required.");
 
             if (string.IsNullOrWhiteSpace(request.Password))
-                return ServiceResult<object>.Failure("Password is required.");
+                return ServiceResult<LoginResponse>.Failure("Password is required.");
+
 
             var user = await _userDataAccess.GetUserByEmailAsync(request.Email.Trim());
 
+
             if (user == null)
-                return ServiceResult<object>.Failure("Invalid email or password.");
+                return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
 
             if (!user.IsActive)
-                return ServiceResult<object>.Failure("This account is inactive.");
+                return ServiceResult<LoginResponse>.Failure("This account is inactive.");
 
             bool isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
 
             if (!isPasswordValid)
-                return ServiceResult<object>.Failure("Invalid email or password.");
+                return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
 
-            var loginData = new
+            var loginResponse = new LoginResponse
             {
-                user.UserId,
-                user.FullName,
-                user.Email,
-                user.Role
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role
             };
 
-            return ServiceResult<object>.Success(loginData, "Login succeeded.");
+            return ServiceResult<LoginResponse>.Success(loginResponse, "Login succeeded.");
         }
 
 

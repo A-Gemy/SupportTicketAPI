@@ -7,7 +7,7 @@ namespace SupportTicketAPI.Services.Interfaces
     {
         Task<ServiceResult<int>> RegisterCustomerAsync(RegisterRequest request);
 
-        Task<ServiceResult<object>> LoginAsync(LoginRequest request);
+        Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequest request);
 
     }
 }

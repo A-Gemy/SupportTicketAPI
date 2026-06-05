@@ -62,7 +62,7 @@ namespace SupportTicketAPI.Controllers
             {
                 result.IsSuccess,
                 result.Message,
-                User = result.Data
+                Data = result.Data
             });
         }
 
