@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupportTicketAPI.Constants;
 using SupportTicketAPI.DTOs.Auth;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
@@ -85,6 +86,21 @@ namespace SupportTicketAPI.Controllers
                 FullName = fullName,
                 Email = email,
                 Role = role
+            });
+        }
+
+
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpGet("admin-test")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public IActionResult AdminTest()
+        {
+            return Ok(new
+            {
+                Message = "You are authorized as Admin."
             });
         }
 

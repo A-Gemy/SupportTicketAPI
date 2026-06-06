@@ -73,8 +73,8 @@ namespace SupportTicketAPI.Services
                 return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
 
 
-            string accessToken = _tokenService.GenerateToken(user);
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
+            string accessToken = _tokenService.GenerateToken(user, accessTokenExpiresAt);
 
             var loginResponse = new LoginResponse
             {

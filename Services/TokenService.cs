@@ -26,7 +26,7 @@ namespace SupportTicketAPI.Services
             return DateTime.UtcNow.AddMinutes(expirationMinutes);
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, DateTime expiresAt)
         {
             var jwtKey = _configuration["Jwt:Key"];
             var issuer = _configuration["Jwt:Issuer"];
@@ -50,7 +50,7 @@ namespace SupportTicketAPI.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: GetAccessTokenExpiration(),
+                expires: expiresAt,
                 signingCredentials: credentials
             );
 
