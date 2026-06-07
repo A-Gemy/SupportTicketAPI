@@ -76,6 +76,9 @@ namespace SupportTicketAPI.Services
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
             string accessToken = _tokenService.GenerateToken(user, accessTokenExpiresAt);
 
+            DateTime refreshTokenExpiresAt = _tokenService.GetRefreshTokenExpiration();
+            string refreshToken = _tokenService.GenerateRefreshToken();
+
             var loginResponse = new LoginResponse
             {
                 UserId = user.UserId,
@@ -83,7 +86,9 @@ namespace SupportTicketAPI.Services
                 Email = user.Email,
                 Role = user.Role,
                 AccessToken = accessToken,
-                AccessTokenExpiresAt = accessTokenExpiresAt
+                AccessTokenExpiresAt = accessTokenExpiresAt,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiresAt = refreshTokenExpiresAt,
             };
 
             return ServiceResult<LoginResponse>.Success(loginResponse, "Login succeeded.");

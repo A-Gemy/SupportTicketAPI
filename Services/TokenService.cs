@@ -3,6 +3,7 @@ using SupportTicketAPI.Models;
 using SupportTicketAPI.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace SupportTicketAPI.Services
@@ -55,6 +56,22 @@ namespace SupportTicketAPI.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public DateTime GetRefreshTokenExpiration()
+        {
+            int expirationDays = int.Parse(
+                _configuration["Jwt:RefreshTokenExpirationDays"] ?? "7"
+            );
+
+            return DateTime.UtcNow.AddDays(expirationDays);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            byte[] randomBytes = RandomNumberGenerator.GetBytes(64);
+
+            return Convert.ToBase64String(randomBytes);
         }
 
     }

@@ -8,5 +8,9 @@ namespace SupportTicketAPI.Services.Interfaces
 
         DateTime GetAccessTokenExpiration();
 
+        string GenerateRefreshToken();
+
+        DateTime GetRefreshTokenExpiration();
+
     }
 }
