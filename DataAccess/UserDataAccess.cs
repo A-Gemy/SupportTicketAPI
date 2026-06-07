@@ -77,5 +77,38 @@ namespace SupportTicketAPI.DataAccess
             return null;
         }
 
+        public async Task<ServiceResult<int>> CreateAgentAsync(string fullName, string email, string passwordHash)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_CreateAgent", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@FullName", fullName);
+            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.AddWithValue("@PasswordHash", passwordHash);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                int userId = reader.IsDBNull(reader.GetOrdinal("UserId"))
+                    ? 0
+                    : reader.GetInt32(reader.GetOrdinal("UserId"));
+
+                if (isSuccess)
+                    return ServiceResult<int>.Success(userId, message);
+
+                return ServiceResult<int>.Failure(message);
+            }
+
+            return ServiceResult<int>.Failure("Failed to create agent.");
+        }
+
     }
 }

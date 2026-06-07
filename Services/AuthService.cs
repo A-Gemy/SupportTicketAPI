@@ -89,6 +89,27 @@ namespace SupportTicketAPI.Services
             return ServiceResult<LoginResponse>.Success(loginResponse, "Login succeeded.");
         }
 
+        public async Task<ServiceResult<int>> CreateAgentAsync(CreateAgentRequest request)
+        {
+            if (request == null)
+                return ServiceResult<int>.Failure("Invalid request.");
 
+            if (string.IsNullOrWhiteSpace(request.FullName))
+                return ServiceResult<int>.Failure("Full name is required.");
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return ServiceResult<int>.Failure("Email is required.");
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+                return ServiceResult<int>.Failure("Password is required.");
+
+            string passwordHash = _passwordHasher.HashPassword(request.Password);
+
+            return await _userDataAccess.CreateAgentAsync(
+                request.FullName.Trim(),
+                request.Email.Trim(),
+                passwordHash
+            );
+        }
     }
 }

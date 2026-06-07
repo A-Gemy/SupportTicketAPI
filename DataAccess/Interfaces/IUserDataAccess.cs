@@ -10,6 +10,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<User?> GetUserByEmailAsync(string email);
 
+        Task<ServiceResult<int>> CreateAgentAsync(string fullName, string email, string passwordHash);
+
     }
 
 }

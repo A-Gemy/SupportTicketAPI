@@ -61,11 +61,41 @@ namespace SupportTicketAPI.Controllers
                     result.Message
                 });
             }
+
             return Ok(new
             {
                 result.IsSuccess,
                 result.Message,
                 Data = result.Data
+            });
+        }
+
+
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost("agents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> CreateAgent(CreateAgentRequest request)
+        {
+            var result = await _authService.CreateAgentAsync(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                UserId = result.Data
             });
         }
 
