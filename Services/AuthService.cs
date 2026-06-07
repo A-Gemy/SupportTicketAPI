@@ -145,7 +145,7 @@ namespace SupportTicketAPI.Services
             if (storedRefreshToken.RevokedAt != null)
                 return ServiceResult<LoginResponse>.Failure("Refresh token has been revoked.");
 
-            if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
+            if (storedRefreshToken.ExpiresAt <= DateTime.UtcNow)
                 return ServiceResult<LoginResponse>.Failure("Refresh token has expired.");
 
             if (!storedRefreshToken.User.IsActive)

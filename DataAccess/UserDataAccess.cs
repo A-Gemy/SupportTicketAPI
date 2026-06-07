@@ -177,7 +177,7 @@ namespace SupportTicketAPI.DataAccess
                         PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
                         Role = reader.GetString(reader.GetOrdinal("Role")),
                         IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("UserCreatedAt"))
                     }
                 };
             }
