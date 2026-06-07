@@ -11,5 +11,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<int>> CreateAgentAsync(CreateAgentRequest request);
 
+        Task<ServiceResult<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest request);
+
     }
 }

@@ -14,6 +14,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<int>> SaveRefreshTokenAsync(int userId, string tokenHash, DateTime expiresAt);
 
+        Task<RefreshToken?> GetRefreshTokenAsync(string tokenHash);
+
     }
 
 }

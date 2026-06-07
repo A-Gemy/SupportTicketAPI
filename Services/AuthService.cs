@@ -127,5 +127,50 @@ namespace SupportTicketAPI.Services
             );
         }
 
+        public async Task<ServiceResult<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            if (request == null)
+                return ServiceResult<LoginResponse>.Failure("Invalid request.");
+
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+                return ServiceResult<LoginResponse>.Failure("Refresh token is required.");
+
+            string refreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
+
+            var storedRefreshToken = await _userDataAccess.GetRefreshTokenAsync(refreshTokenHash);
+
+            if (storedRefreshToken == null)
+                return ServiceResult<LoginResponse>.Failure("Invalid refresh token.");
+
+            if (storedRefreshToken.RevokedAt != null)
+                return ServiceResult<LoginResponse>.Failure("Refresh token has been revoked.");
+
+            if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
+                return ServiceResult<LoginResponse>.Failure("Refresh token has expired.");
+
+            if (!storedRefreshToken.User.IsActive)
+                return ServiceResult<LoginResponse>.Failure("This account is inactive.");
+
+            DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
+            string accessToken = _tokenService.GenerateToken(storedRefreshToken.User, accessTokenExpiresAt);
+
+            var response = new LoginResponse
+            {
+                UserId = storedRefreshToken.User.UserId,
+                FullName = storedRefreshToken.User.FullName,
+                Email = storedRefreshToken.User.Email,
+                Role = storedRefreshToken.User.Role,
+                AccessToken = accessToken,
+                AccessTokenExpiresAt = accessTokenExpiresAt,
+
+                // For now, return the same refresh token.
+                // Later, we can implement refresh token rotation.
+                RefreshToken = request.RefreshToken,
+                RefreshTokenExpiresAt = storedRefreshToken.ExpiresAt
+            };
+
+            return ServiceResult<LoginResponse>.Success(response, "Token refreshed successfully.");
+        }
+
     }
 }

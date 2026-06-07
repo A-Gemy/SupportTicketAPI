@@ -143,5 +143,47 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<int>.Failure("Failed to save refresh token.");
         }
 
+        public async Task<RefreshToken?> GetRefreshTokenAsync(string tokenHash)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_GetRefreshToken", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@TokenHash", tokenHash);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return new RefreshToken
+                {
+                    RefreshTokenId = reader.GetInt32(reader.GetOrdinal("RefreshTokenId")),
+                    UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                    TokenHash = reader.GetString(reader.GetOrdinal("TokenHash")),
+                    ExpiresAt = reader.GetDateTime(reader.GetOrdinal("ExpiresAt")),
+                    RevokedAt = reader.IsDBNull(reader.GetOrdinal("RevokedAt"))
+                        ? null
+                        : reader.GetDateTime(reader.GetOrdinal("RevokedAt")),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+
+                    User = new User
+                    {
+                        UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                        FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                        Email = reader.GetString(reader.GetOrdinal("Email")),
+                        PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
+                        Role = reader.GetString(reader.GetOrdinal("Role")),
+                        IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                    }
+                };
+            }
+
+            return null;
+        }
+
     }
 }

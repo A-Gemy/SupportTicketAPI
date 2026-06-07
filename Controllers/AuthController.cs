@@ -101,6 +101,32 @@ namespace SupportTicketAPI.Controllers
 
 
 
+        [HttpPost("refresh-token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
+        {
+            var result = await _authService.RefreshTokenAsync(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                Data = result.Data
+            });
+        }
+
+
+
         [Authorize]
         [HttpGet("me")]
         public IActionResult GetCurrentUser()
