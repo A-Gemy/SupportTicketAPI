@@ -74,7 +74,7 @@ namespace SupportTicketAPI.Services
 
 
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
-            string accessToken = _tokenService.GenerateToken(user, accessTokenExpiresAt);
+            string accessToken = _tokenService.GenerateAccessToken(user, accessTokenExpiresAt);
 
             DateTime refreshTokenExpiresAt = _tokenService.GetRefreshTokenExpiration();
             string refreshToken = _tokenService.GenerateRefreshToken();
@@ -135,9 +135,9 @@ namespace SupportTicketAPI.Services
             if (string.IsNullOrWhiteSpace(request.RefreshToken))
                 return ServiceResult<LoginResponse>.Failure("Refresh token is required.");
 
-            string refreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
+            string oldRefreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
 
-            var storedRefreshToken = await _userDataAccess.GetRefreshTokenAsync(refreshTokenHash);
+            var storedRefreshToken = await _userDataAccess.GetRefreshTokenAsync(oldRefreshTokenHash);
 
             if (storedRefreshToken == null)
                 return ServiceResult<LoginResponse>.Failure("Invalid refresh token.");
@@ -151,8 +151,26 @@ namespace SupportTicketAPI.Services
             if (!storedRefreshToken.User.IsActive)
                 return ServiceResult<LoginResponse>.Failure("This account is inactive.");
 
+            var revokeOldTokenResult = await _userDataAccess.RevokeRefreshTokenAsync(oldRefreshTokenHash);
+
+            if (!revokeOldTokenResult.IsSuccess)
+                return ServiceResult<LoginResponse>.Failure(revokeOldTokenResult.Message);
+
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
-            string accessToken = _tokenService.GenerateToken(storedRefreshToken.User, accessTokenExpiresAt);
+            string accessToken = _tokenService.GenerateAccessToken(storedRefreshToken.User, accessTokenExpiresAt);
+
+            DateTime newRefreshTokenExpires = _tokenService.GetRefreshTokenExpiration();
+            string newRefreshToken = _tokenService.GenerateRefreshToken();
+            string newRefreshTokenHash = _tokenService.HashRefreshToken(newRefreshToken);
+
+            var saveNewRefreshTokenResult = await _userDataAccess.SaveRefreshTokenAsync(
+                storedRefreshToken.User.UserId,
+                newRefreshTokenHash,
+                newRefreshTokenExpires
+            );
+
+            if (!saveNewRefreshTokenResult.IsSuccess)
+                return ServiceResult<LoginResponse>.Failure(saveNewRefreshTokenResult.Message);
 
             var response = new LoginResponse
             {
@@ -160,13 +178,12 @@ namespace SupportTicketAPI.Services
                 FullName = storedRefreshToken.User.FullName,
                 Email = storedRefreshToken.User.Email,
                 Role = storedRefreshToken.User.Role,
+
                 AccessToken = accessToken,
                 AccessTokenExpiresAt = accessTokenExpiresAt,
 
-                // For now, return the same refresh token.
-                // Later, we can implement refresh token rotation.
-                RefreshToken = request.RefreshToken,
-                RefreshTokenExpiresAt = storedRefreshToken.ExpiresAt
+                RefreshToken = newRefreshToken,
+                RefreshTokenExpiresAt = newRefreshTokenExpires
             };
 
             return ServiceResult<LoginResponse>.Success(response, "Token refreshed successfully.");

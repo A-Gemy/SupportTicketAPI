@@ -27,7 +27,7 @@ namespace SupportTicketAPI.Services
             return DateTime.UtcNow.AddMinutes(expirationMinutes);
         }
 
-        public string GenerateToken(User user, DateTime expiresAt)
+        public string GenerateAccessToken(User user, DateTime expiresAt)
         {
             var jwtKey = _configuration["Jwt:Key"];
             var issuer = _configuration["Jwt:Issuer"];

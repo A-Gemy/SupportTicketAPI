@@ -16,6 +16,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<RefreshToken?> GetRefreshTokenAsync(string tokenHash);
 
+        Task<ServiceResult<bool>> RevokeRefreshTokenAsync(string tokenHash);
+
     }
 
 }

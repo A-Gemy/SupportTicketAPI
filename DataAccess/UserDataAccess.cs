@@ -185,5 +185,32 @@ namespace SupportTicketAPI.DataAccess
             return null;
         }
 
+        public async Task<ServiceResult<bool>> RevokeRefreshTokenAsync(string tokenHash)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_RevokeRefreshToken", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@TokenHash", tokenHash);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                if (isSuccess)
+                    return ServiceResult<bool>.Success(true, message);
+
+                return ServiceResult<bool>.Failure(message);
+            }
+
+            return ServiceResult<bool>.Failure("Failed to revoke refresh token.");
+        }
+
     }
 }
