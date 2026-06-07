@@ -12,5 +12,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         DateTime GetRefreshTokenExpiration();
 
+        string HashRefreshToken(string refreshToken);
+
     }
 }

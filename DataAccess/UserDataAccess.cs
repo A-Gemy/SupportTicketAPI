@@ -110,5 +110,38 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<int>.Failure("Failed to create agent.");
         }
 
+        public async Task<ServiceResult<int>> SaveRefreshTokenAsync(int userId, string tokenHash, DateTime expiresAt)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_SaveRefreshToken", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@UserId", userId);
+            command.Parameters.AddWithValue("@TokenHash", tokenHash);
+            command.Parameters.AddWithValue("@ExpiresAt", expiresAt);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                int refreshTokenId = reader.IsDBNull(reader.GetOrdinal("RefreshTokenId"))
+                    ? 0
+                    : reader.GetInt32(reader.GetOrdinal("RefreshTokenId"));
+
+                if (isSuccess)
+                    return ServiceResult<int>.Success(refreshTokenId, message);
+
+                return ServiceResult<int>.Failure(message);
+            }
+
+            return ServiceResult<int>.Failure("Failed to save refresh token.");
+        }
+
     }
 }

@@ -12,6 +12,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<int>> CreateAgentAsync(string fullName, string email, string passwordHash);
 
+        Task<ServiceResult<int>> SaveRefreshTokenAsync(int userId, string tokenHash, DateTime expiresAt);
+
     }
 
 }

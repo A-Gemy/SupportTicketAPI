@@ -78,6 +78,16 @@ namespace SupportTicketAPI.Services
 
             DateTime refreshTokenExpiresAt = _tokenService.GetRefreshTokenExpiration();
             string refreshToken = _tokenService.GenerateRefreshToken();
+            string refreshTokenHash = _tokenService.HashRefreshToken(refreshToken);
+
+            var saveRefreshTokenResult = await _userDataAccess.SaveRefreshTokenAsync(
+                user.UserId,
+                refreshTokenHash,
+                refreshTokenExpiresAt
+            );
+
+            if (!saveRefreshTokenResult.IsSuccess)
+                return ServiceResult<LoginResponse>.Failure(saveRefreshTokenResult.Message);
 
             var loginResponse = new LoginResponse
             {
@@ -116,5 +126,6 @@ namespace SupportTicketAPI.Services
                 passwordHash
             );
         }
+
     }
 }

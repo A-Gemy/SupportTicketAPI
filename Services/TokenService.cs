@@ -74,5 +74,13 @@ namespace SupportTicketAPI.Services
             return Convert.ToBase64String(randomBytes);
         }
 
+        public string HashRefreshToken(string refreshToken)
+        {
+            byte[] tokenBytes = Encoding.UTF8.GetBytes(refreshToken);
+            byte[] hashBytes = SHA256.HashData(tokenBytes);
+
+            return Convert.ToBase64String(hashBytes);
+        }
+
     }
 }
