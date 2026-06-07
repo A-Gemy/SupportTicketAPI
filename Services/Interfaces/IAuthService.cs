@@ -13,5 +13,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest request);
 
+        Task<ServiceResult<bool>> LogoutAsync(RefreshTokenRequest request);
+
     }
 }

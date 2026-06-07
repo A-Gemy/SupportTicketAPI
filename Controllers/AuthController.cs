@@ -127,6 +127,30 @@ namespace SupportTicketAPI.Controllers
 
 
 
+        [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Logout(RefreshTokenRequest request)
+        {
+            var result = await _authService.LogoutAsync(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message
+            });
+        }
+
+
         [Authorize]
         [HttpGet("me")]
         public IActionResult GetCurrentUser()
