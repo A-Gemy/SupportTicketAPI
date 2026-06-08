@@ -169,20 +169,5 @@ namespace SupportTicketAPI.Controllers
             });
         }
 
-
-
-        [Authorize(Roles = UserRoles.Admin)]
-        [HttpGet("admin-test")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public IActionResult AdminTest()
-        {
-            return Ok(new
-            {
-                Message = "You are authorized as Admin."
-            });
-        }
-
     }
 }
