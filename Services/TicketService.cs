@@ -45,6 +45,17 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.GetCustomerTicketsAsync(customerId);
         }
 
+        public async Task<ServiceResult<Ticket?>> GetCustomerTicketDetailsAsync(int customerId, int ticketId)
+        {
+            if (customerId <= 0)
+                return ServiceResult<Ticket?>.Failure("Invalid customer id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<Ticket?>.Failure("Invalid ticket id.");
+
+            return await _ticketDataAccess.GetCustomerTicketDetailsAsync(customerId, ticketId);
+        }
+
 
     }
 }
