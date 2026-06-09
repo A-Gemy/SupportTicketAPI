@@ -25,14 +25,15 @@ namespace SupportTicketAPI.Services
             if (string.IsNullOrWhiteSpace(request.Description))
                 return ServiceResult<int>.Failure("Description is required.");
 
-            if (string.IsNullOrWhiteSpace(request.Priority))
-                return ServiceResult<int>.Failure("Priority is required.");
+            string priority = string.IsNullOrWhiteSpace(request.Priority)
+                ? "Medium"
+                : request.Priority.Trim();
 
             return await _ticketDataAccess.CreateTicketAsync(
                 customerId,
                 request.Title.Trim(),
                 request.Description.Trim(),
-                request.Priority.Trim());
+                priority);
         }
 
     }
