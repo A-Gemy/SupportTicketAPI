@@ -1,4 +1,5 @@
 ﻿using SupportTicketAPI.Common;
+using SupportTicketAPI.Models;
 
 namespace SupportTicketAPI.DataAccess.Interfaces
 {
@@ -9,6 +10,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
             string title,
             string description,
             string priority);
+
+        Task<ServiceResult<List<Ticket>>> GetCustomerTicketsAsync(int customerId);
 
     }
 }

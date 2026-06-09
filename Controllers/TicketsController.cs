@@ -69,5 +69,44 @@ namespace SupportTicketAPI.Controllers
         }
 
 
+
+        [Authorize(Roles = UserRoles.Customer)]
+        [HttpGet("my")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetMyTickets()
+        {
+            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out int customerId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.GetCustomerTicketsAsync(customerId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                Tickets = result.Data
+            });
+        }
+
+
     }
 }

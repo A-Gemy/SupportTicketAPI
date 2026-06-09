@@ -1,6 +1,7 @@
 ﻿using SupportTicketAPI.Common;
 using SupportTicketAPI.DataAccess.Interfaces;
 using SupportTicketAPI.DTOs.Tickets;
+using SupportTicketAPI.Models;
 using SupportTicketAPI.Services.Interfaces;
 
 namespace SupportTicketAPI.Services
@@ -35,6 +36,15 @@ namespace SupportTicketAPI.Services
                 request.Description.Trim(),
                 priority);
         }
+
+        public async Task<ServiceResult<List<Ticket>>> GetCustomerTicketsAsync(int customerId)
+        {
+            if (customerId <= 0)
+                return ServiceResult<List<Ticket>>.Failure("Invalid customer id.");
+
+            return await _ticketDataAccess.GetCustomerTicketsAsync(customerId);
+        }
+
 
     }
 }
