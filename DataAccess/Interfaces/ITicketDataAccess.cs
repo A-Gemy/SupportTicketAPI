@@ -15,5 +15,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<Ticket?>> GetCustomerTicketDetailsAsync(int customerId, int ticketId);
 
+        Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId);
+
     }
 }

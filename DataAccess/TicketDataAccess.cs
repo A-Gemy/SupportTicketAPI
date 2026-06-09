@@ -155,6 +155,33 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<Ticket?>.Success(ticket, message);
         }
 
+        public async Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_CloseCustomerTicket", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@CustomerId", customerId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                if (isSuccess)
+                    return ServiceResult<bool>.Success(true, message);
+
+                return ServiceResult<bool>.Failure(message);
+            }
+            return ServiceResult<bool>.Failure("Failed to close ticket.");
+        }
+
 
     }
 }

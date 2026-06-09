@@ -12,6 +12,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<Ticket?>> GetCustomerTicketDetailsAsync(int customerId, int ticketId);
 
+        Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId);
 
     }
 }

@@ -56,6 +56,17 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.GetCustomerTicketDetailsAsync(customerId, ticketId);
         }
 
+        public async Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId)
+        {
+            if (customerId <= 0)
+                return ServiceResult<bool>.Failure("Invalid customer id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<bool>.Failure("Invalid ticket id.");
+
+            return await _ticketDataAccess.CloseCustomerTicketAsync(customerId, ticketId);
+        }
 
     }
+
 }
