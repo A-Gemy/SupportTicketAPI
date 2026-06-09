@@ -1,0 +1,73 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SupportTicketAPI.Constants;
+using SupportTicketAPI.DTOs.Tickets;
+using SupportTicketAPI.Services.Interfaces;
+using System.Security.Claims;
+
+namespace SupportTicketAPI.Controllers
+{
+    [Route("api/tickets")]
+    [ApiController]
+    [Authorize]
+    public class TicketsController : ControllerBase
+    {
+        private readonly ITicketService _ticketService;
+
+        public TicketsController(ITicketService ticketService)
+        {
+            _ticketService = ticketService;
+        }
+
+
+
+        [Authorize(Roles = UserRoles.Customer)]
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid request."
+                });
+            }
+
+            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out int customerId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.CreateTicketAsync(customerId, request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                TicketId = result.Data
+            });
+        }
+
+
+    }
+}

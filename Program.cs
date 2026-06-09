@@ -91,6 +91,9 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<IUserDataAccess, UserDataAccess>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<ITicketDataAccess, TicketDataAccess>();
+            builder.Services.AddScoped<ITicketService, TicketService>();
+
 
             var app = builder.Build();
 
