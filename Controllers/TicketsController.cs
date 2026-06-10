@@ -187,5 +187,54 @@ namespace SupportTicketAPI.Controllers
         }
 
 
+
+        [Authorize(Roles = UserRoles.Customer)]
+        [HttpPost("{ticketId:int}/comments")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> AddComment(int ticketId, [FromBody] AddTicketCommentRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid request."
+                });
+            }
+
+            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out int customerId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.AddCustomerTicketCommentAsync(customerId, ticketId, request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                CommentId = result.Data
+            });
+        }
+
+
     }
 }

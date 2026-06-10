@@ -182,6 +182,39 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<bool>.Failure("Failed to close ticket.");
         }
 
+        public async Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, string commentText)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AddCustomerTicketComment", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@CustomerId", customerId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.AddWithValue("@CommentText", commentText);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                int commentId = reader.IsDBNull(reader.GetOrdinal("CommentId"))
+                    ? 0
+                    : reader.GetInt32(reader.GetOrdinal("CommentId"));
+
+                if (isSuccess)
+                    return ServiceResult<int>.Success(commentId, message);
+
+                return ServiceResult<int>.Failure(message);
+            }
+
+            return ServiceResult<int>.Failure("Failed to add comment.");
+        }
+
 
     }
 }

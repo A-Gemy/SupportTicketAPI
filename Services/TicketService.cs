@@ -67,6 +67,24 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.CloseCustomerTicketAsync(customerId, ticketId);
         }
 
+        public async Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, AddTicketCommentRequest request)
+        {
+            if (customerId <= 0)
+                return ServiceResult<int>.Failure("Invalid customer id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<int>.Failure("Invalid ticket id.");
+
+            if (request == null)
+                return ServiceResult<int>.Failure("Invalid request.");
+
+            if (string.IsNullOrWhiteSpace(request.CommentText))
+                return ServiceResult<int>.Failure("Comment text is required.");
+
+            return await _ticketDataAccess.AddCustomerTicketCommentAsync(
+                customerId, ticketId, request.CommentText.Trim());
+        }
+
     }
 
 }

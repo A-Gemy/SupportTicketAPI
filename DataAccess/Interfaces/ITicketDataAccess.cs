@@ -17,5 +17,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId);
 
+        Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, string commentText);
+
     }
 }
