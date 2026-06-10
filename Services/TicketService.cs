@@ -99,6 +99,15 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.GetCustomerTicketCommentsAsync(customerId, ticketId);
         }
 
+        public async Task<ServiceResult<List<Ticket>>> AdminGetAllTicketsAsync(int adminId)
+        {
+            if (adminId <= 0)
+                return ServiceResult<List<Ticket>>.Failure("Invalid admin id.");
+
+            return await _ticketDataAccess.AdminGetAllTicketsAsync(adminId);
+        }
+
+
     }
 
 }

@@ -6,7 +6,11 @@
 
         public int CustomerId { get; set; }
 
+        public string CustomerFullName { get; set; } = string.Empty;
+
         public int? AssignedAgentId { get; set; }
+
+        public string? AssignedAgentFullName { get; set; }
 
         public string Title { get; set; } = string.Empty;
 
