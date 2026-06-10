@@ -215,6 +215,51 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<int>.Failure("Failed to add comment.");
         }
 
+        public async Task<ServiceResult<List<TicketComment>>> GetCustomerTicketCommentsAsync(int customerId, int ticketId)
+        {
+            List<TicketComment> comments = new();
+
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_GetCustomerTicketComments", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@CustomerId", customerId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<List<TicketComment>>.Failure("Failed to retrieve ticket comments.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+                return ServiceResult<List<TicketComment>>.Failure(message);
+
+            if (await reader.NextResultAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    TicketComment comment = new()
+                    {
+                        CommentId = reader.GetInt32(reader.GetOrdinal("CommentId")),
+                        TicketId = reader.GetInt32(reader.GetOrdinal("TicketId")),
+                        UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                        UserFullName = reader.GetString(reader.GetOrdinal("UserFullName")),
+                        UserRole = reader.GetString(reader.GetOrdinal("UserRole")),
+                        CommentText = reader.GetString(reader.GetOrdinal("CommentText")),
+                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                    };
+                    comments.Add(comment);
+                }
+            }
+
+            return ServiceResult<List<TicketComment>>.Success(comments, message);
+        }
 
     }
 }

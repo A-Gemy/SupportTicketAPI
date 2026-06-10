@@ -8,6 +8,10 @@
 
         public int UserId { get; set; }
 
+        public string UserFullName { get; set; } = string.Empty;
+
+        public string UserRole { get; set; } = string.Empty;
+
         public string CommentText { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; }

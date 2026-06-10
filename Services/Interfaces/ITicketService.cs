@@ -19,5 +19,7 @@ namespace SupportTicketAPI.Services.Interfaces
             int ticketId,
             AddTicketCommentRequest request);
 
+        Task<ServiceResult<List<TicketComment>>> GetCustomerTicketCommentsAsync(int customerId, int ticketId);
+
     }
 }

@@ -233,5 +233,43 @@ namespace SupportTicketAPI.Controllers
         }
 
 
+
+        [Authorize(Roles = UserRoles.Customer)]
+        [HttpGet("{ticketId:int}/comments")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetComments(int ticketId)
+        {
+            if (!TryGetCurrentUserId(out int customerId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.GetCustomerTicketCommentsAsync(customerId, ticketId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                Comments = result.Data
+            });
+        }
+
+
     }
 }

@@ -88,6 +88,17 @@ namespace SupportTicketAPI.Services
                 customerId, ticketId, request.CommentText.Trim());
         }
 
+        public async Task<ServiceResult<List<TicketComment>>> GetCustomerTicketCommentsAsync(int customerId, int ticketId)
+        {
+            if (customerId <= 0)
+                return ServiceResult<List<TicketComment>>.Failure("Invalid customer id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<List<TicketComment>>.Failure("Invalid ticket id.");
+
+            return await _ticketDataAccess.GetCustomerTicketCommentsAsync(customerId, ticketId);
+        }
+
     }
 
 }
