@@ -30,6 +30,9 @@ namespace SupportTicketAPI.Services
                 ? "Medium"
                 : request.Priority.Trim();
 
+            if (priority != "Low" && priority != "Medium" && priority != "High")
+                return ServiceResult<int>.Failure("Invalid priority.");
+
             return await _ticketDataAccess.CreateTicketAsync(
                 customerId,
                 request.Title.Trim(),
