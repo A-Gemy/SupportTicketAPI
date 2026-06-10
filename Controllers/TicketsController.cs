@@ -19,6 +19,13 @@ namespace SupportTicketAPI.Controllers
             _ticketService = ticketService;
         }
 
+        private bool TryGetCurrentUserId(out int userId)
+        {
+            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return int.TryParse(userIdValue, out userId);
+        }
+
 
 
         [Authorize(Roles = UserRoles.Customer)]
@@ -38,9 +45,7 @@ namespace SupportTicketAPI.Controllers
                 });
             }
 
-            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out int customerId))
+            if (!TryGetCurrentUserId(out int customerId))
             {
                 return Unauthorized(new
                 {
@@ -77,9 +82,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetMyTickets()
         {
-            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out int customerId))
+            if (!TryGetCurrentUserId(out int customerId))
             {
                 return Unauthorized(new
                 {
@@ -117,9 +120,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetTicketDetails(int ticketId)
         {
-            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out int customerId))
+            if (!TryGetCurrentUserId(out int customerId))
             {
                 return Unauthorized(new
                 {
@@ -157,9 +158,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> CloseTicket(int ticketId)
         {
-            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out int customerId))
+            if (!TryGetCurrentUserId(out int customerId))
             {
                 return Unauthorized(new
                 {
@@ -205,9 +204,7 @@ namespace SupportTicketAPI.Controllers
                 });
             }
 
-            string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!int.TryParse(userIdValue, out int customerId))
+            if (!TryGetCurrentUserId(out int customerId))
             {
                 return Unauthorized(new
                 {
