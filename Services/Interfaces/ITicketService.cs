@@ -23,5 +23,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<List<Ticket>>> AdminGetAllTicketsAsync(int adminId);
 
+        Task<ServiceResult<Ticket>> AdminGetTicketDetailsAsync(int adminId, int ticketId);
+
     }
 }

@@ -308,5 +308,43 @@ namespace SupportTicketAPI.Controllers
         }
 
 
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpGet("admin/{ticketId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> AdminGetTicketDetails(int ticketId)
+        {
+            if (!TryGetCurrentUserId(out int adminId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.AdminGetTicketDetailsAsync(adminId, ticketId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                Ticket = result.Data
+            });
+        }
+
+
     }
 }
