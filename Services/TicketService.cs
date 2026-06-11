@@ -118,6 +118,14 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.AdminGetTicketDetailsAsync(adminId, ticketId);
         }
 
+        public async Task<ServiceResult<List<Ticket>>> AdminGetUnassignedTicketsAsync(int adminId)
+        {
+            if (adminId <= 0)
+                return ServiceResult<List<Ticket>>.Failure("Invalid admin id.");
+
+            return await _ticketDataAccess.AdminGetUnassignedTicketsAsync(adminId);
+        }
+
     }
 
 }

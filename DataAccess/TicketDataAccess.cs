@@ -381,5 +381,68 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<Ticket>.Success(ticket, message);
         }
 
+        public async Task<ServiceResult<List<Ticket>>> AdminGetUnassignedTicketsAsync(int adminId)
+        {
+            List<Ticket> tickets = new();
+
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AdminGetUnassignedTickets", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@AdminId", adminId);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<List<Ticket>>.Failure("Failed to retrieve unassigned tickets.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+                return ServiceResult<List<Ticket>>.Failure(message);
+
+            if (await reader.NextResultAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    Ticket ticket = new()
+                    {
+                        TicketId = reader.GetInt32(reader.GetOrdinal("TicketId")),
+                        CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                        CustomerFullName = reader.GetString(reader.GetOrdinal("CustomerFullName")),
+
+                        AssignedAgentId = reader.IsDBNull(reader.GetOrdinal("AssignedAgentId"))
+                            ? null
+                            : reader.GetInt32(reader.GetOrdinal("AssignedAgentId")),
+
+                        AssignedAgentFullName = reader.IsDBNull(reader.GetOrdinal("AssignedAgentFullName"))
+                            ? null
+                            : reader.GetString(reader.GetOrdinal("AssignedAgentFullName")),
+
+                        Title = reader.GetString(reader.GetOrdinal("Title")),
+                        Description = reader.GetString(reader.GetOrdinal("Description")),
+                        Status = reader.GetString(reader.GetOrdinal("Status")),
+                        Priority = reader.GetString(reader.GetOrdinal("Priority")),
+                        CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+
+                        UpdatedAt = reader.IsDBNull(reader.GetOrdinal("UpdatedAt"))
+                            ? null
+                            : reader.GetDateTime(reader.GetOrdinal("UpdatedAt")),
+
+                        ClosedAt = reader.IsDBNull(reader.GetOrdinal("ClosedAt"))
+                            ? null
+                            : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
+                    };
+                    tickets.Add(ticket);
+                }
+            }
+            return ServiceResult<List<Ticket>>.Success(tickets, message);
+        }
+
+
     }
 }
