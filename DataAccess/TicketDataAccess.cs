@@ -443,6 +443,32 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<List<Ticket>>.Success(tickets, message);
         }
 
+        public async Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, int agentId)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AssignTicketToAgent", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@AdminId", adminId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.AddWithValue("@AgentId", agentId);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<bool>.Failure("Failed to assign ticket to agent.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+                return ServiceResult<bool>.Failure(message);
+
+            return ServiceResult<bool>.Success(true, message);
+        }
 
     }
 }

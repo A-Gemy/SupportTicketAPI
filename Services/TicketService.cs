@@ -126,6 +126,26 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.AdminGetUnassignedTicketsAsync(adminId);
         }
 
+        public async Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, AssignTicketRequest request)
+        {
+            if (adminId <= 0)
+                return ServiceResult<bool>.Failure("Invalid admin id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<bool>.Failure("Invalid ticket id.");
+
+            if (request == null)
+                return ServiceResult<bool>.Failure("Invalid request.");
+
+            if (request.AgentId <= 0)
+                return ServiceResult<bool>.Failure("Invalid agent id.");
+
+            return await _ticketDataAccess.AssignTicketToAgentAsync(
+                adminId,
+                ticketId,
+                request.AgentId);
+        }
+
     }
 
 }
