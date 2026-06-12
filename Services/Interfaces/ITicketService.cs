@@ -32,5 +32,10 @@ namespace SupportTicketAPI.Services.Interfaces
             int ticketId,
             AssignTicketRequest request);
 
+        Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(
+            int adminId,
+            int ticketId,
+            UpdateTicketStatusRequest request);
+
     }
 }

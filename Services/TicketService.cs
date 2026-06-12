@@ -146,6 +146,30 @@ namespace SupportTicketAPI.Services
                 request.AgentId);
         }
 
+        public async Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, UpdateTicketStatusRequest request)
+        {
+            if (adminId <= 0)
+                return ServiceResult<bool>.Failure("Invalid admin id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<bool>.Failure("Invalid ticket id.");
+
+            string status = request.Status.Trim();
+
+            if (string.IsNullOrWhiteSpace(status))
+                return ServiceResult<bool>.Failure("Ticket status is required.");
+
+            if (status != "Open" &&
+                status != "InProgress" &&
+                status != "Resolved" &&
+                status != "Closed")
+            {
+                return ServiceResult<bool>.Failure("Invalid status.");
+            }
+
+            return await _ticketDataAccess.AdminUpdateTicketStatusAsync(adminId, ticketId, status);
+        }
+
     }
 
 }

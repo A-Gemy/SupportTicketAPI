@@ -419,5 +419,43 @@ namespace SupportTicketAPI.Controllers
                 result.Message
             });
         }
+
+
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPatch("{ticketId:int}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> AdminUpdateTicketStatus(int ticketId, [FromBody] UpdateTicketStatusRequest request)
+        {
+            if (!TryGetCurrentUserId(out int adminId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.AdminUpdateTicketStatusAsync(adminId, ticketId, request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message
+            });
+        }
+
     }
 }

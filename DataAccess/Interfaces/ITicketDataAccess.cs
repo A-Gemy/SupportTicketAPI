@@ -29,5 +29,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, int agentId);
 
+        Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, string status);
+
     }
 }
