@@ -154,10 +154,13 @@ namespace SupportTicketAPI.Services
             if (ticketId <= 0)
                 return ServiceResult<bool>.Failure("Invalid ticket id.");
 
-            string status = request.Status.Trim();
+            if (request == null)
+                return ServiceResult<bool>.Failure("Invalid request.");
 
-            if (string.IsNullOrWhiteSpace(status))
+            if (string.IsNullOrWhiteSpace(request.Status))
                 return ServiceResult<bool>.Failure("Ticket status is required.");
+
+            string status = request.Status.Trim();
 
             if (status != "Open" &&
                 status != "InProgress" &&
@@ -178,10 +181,13 @@ namespace SupportTicketAPI.Services
             if (ticketId <= 0)
                 return ServiceResult<int>.Failure("Invalid ticket id.");
 
-            string commentText = request.CommentText.Trim();
+            if (request == null)
+                return ServiceResult<int>.Failure("Invalid request.");
 
-            if (string.IsNullOrWhiteSpace(commentText))
+            if (string.IsNullOrWhiteSpace(request.CommentText))
                 return ServiceResult<int>.Failure("Comment text is required.");
+
+            string commentText = request.CommentText.Trim();
 
             return await _ticketDataAccess.AddAdminTicketCommentAsync(
                 adminId, ticketId, commentText);
