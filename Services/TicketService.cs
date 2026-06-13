@@ -187,6 +187,17 @@ namespace SupportTicketAPI.Services
                 adminId, ticketId, commentText);
         }
 
+        public async Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId)
+        {
+            if (adminId <= 0)
+                return ServiceResult<List<Ticket>>.Failure("Invalid admin id.");
+
+            if (agentId <= 0)
+                return ServiceResult<List<Ticket>>.Failure("Invalid agent id.");
+
+            return await _ticketDataAccess.AdminGetTicketsByAgentAsync(adminId, agentId);
+        }
+
     }
 
 }

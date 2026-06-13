@@ -30,5 +30,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, AddTicketCommentRequest request);
 
+        Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId);
+
     }
 }
