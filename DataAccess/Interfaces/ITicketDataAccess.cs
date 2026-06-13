@@ -31,5 +31,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, string status);
 
+        Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, string commentText);
+
     }
 }

@@ -497,5 +497,34 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<bool>.Success(true, message);
         }
 
+        public async Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, string commentText)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AddAdminTicketComment", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@AdminId", adminId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.AddWithValue("@CommentText", commentText);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<int>.Failure("Failed to add comment.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+                return ServiceResult<int>.Failure(message);
+
+            int commentId = reader.GetInt32(reader.GetOrdinal("CommentId"));
+
+            return ServiceResult<int>.Success(commentId, message);
+        }
+
     }
 }

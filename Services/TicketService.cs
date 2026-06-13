@@ -170,6 +170,23 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.AdminUpdateTicketStatusAsync(adminId, ticketId, status);
         }
 
+        public async Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, AddTicketCommentRequest request)
+        {
+            if (adminId <= 0)
+                return ServiceResult<int>.Failure("Invalid admin id.");
+
+            if (ticketId <= 0)
+                return ServiceResult<int>.Failure("Invalid ticket id.");
+
+            string commentText = request.CommentText.Trim();
+
+            if (string.IsNullOrWhiteSpace(commentText))
+                return ServiceResult<int>.Failure("Comment text is required.");
+
+            return await _ticketDataAccess.AddAdminTicketCommentAsync(
+                adminId, ticketId, commentText);
+        }
+
     }
 
 }
