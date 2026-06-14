@@ -13,10 +13,12 @@ namespace SupportTicketAPI.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ITicketService _ticketService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public TicketsController(ITicketService ticketService)
+        public TicketsController(ITicketService ticketService, IAuthorizationService authorizationService)
         {
             _ticketService = ticketService;
+            _authorizationService = authorizationService;
         }
 
         private bool TryGetCurrentUserId(out int userId)
@@ -234,7 +236,7 @@ namespace SupportTicketAPI.Controllers
 
 
 
-        [Authorize(Roles = UserRoles.Customer)]
+        [Authorize]
         [HttpGet("{ticketId:int}/comments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -242,16 +244,28 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetComments(int ticketId)
         {
-            if (!TryGetCurrentUserId(out int customerId))
+            var accessResult = await _ticketService.GetTicketAccessInfoAsync(ticketId);
+
+            if (!accessResult.IsSuccess || accessResult.Data == null)
             {
-                return Unauthorized(new
+                return BadRequest(new
                 {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
+                    accessResult.IsSuccess,
+                    accessResult.Message
                 });
             }
 
-            var result = await _ticketService.GetCustomerTicketCommentsAsync(customerId, ticketId);
+            AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(
+                User,
+                accessResult.Data,
+                AuthorizationPolicies.CanViewTicketComments);
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _ticketService.GetTicketCommentsAsync(ticketId);
 
             if (!result.IsSuccess)
             {

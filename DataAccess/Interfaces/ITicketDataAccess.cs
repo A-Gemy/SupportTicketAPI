@@ -15,7 +15,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, string commentText);
 
-        Task<ServiceResult<List<TicketComment>>> GetCustomerTicketCommentsAsync(int customerId, int ticketId);
+        Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId);
 
         Task<ServiceResult<List<Ticket>>> AdminGetAllTicketsAsync(int adminId);
 

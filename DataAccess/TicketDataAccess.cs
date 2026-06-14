@@ -215,16 +215,15 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<int>.Failure("Failed to add comment.");
         }
 
-        public async Task<ServiceResult<List<TicketComment>>> GetCustomerTicketCommentsAsync(int customerId, int ticketId)
+        public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
         {
             List<TicketComment> comments = new();
 
             using SqlConnection connection = new(_connectionString);
 
-            using SqlCommand command = new("usp_GetCustomerTicketComments", connection);
+            using SqlCommand command = new("usp_GetTicketComments", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
             command.Parameters.AddWithValue("@TicketId", ticketId);
 
             await connection.OpenAsync();
@@ -635,6 +634,7 @@ namespace SupportTicketAPI.DataAccess
 
             return ServiceResult<TicketAccessInfo>.Success(ticketAccessInfo, message);
         }
+
 
     }
 }
