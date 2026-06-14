@@ -587,5 +587,43 @@ namespace SupportTicketAPI.Controllers
             });
         }
 
+
+
+        [Authorize(Roles = UserRoles.Agent)]
+        [HttpGet("assigned-to-me/{ticketId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> AgentGetAssignedTicketDetails(int ticketId)
+        {
+            if (!TryGetCurrentUserId(out int agentId))
+            {
+                return Unauthorized(new
+                {
+                    IsSuccess = false,
+                    Message = "Invalid user token."
+                });
+            }
+
+            var result = await _ticketService.AgentGetAssignedTicketDetailsAsync(agentId, ticketId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new
+                {
+                    result.IsSuccess,
+                    result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                result.IsSuccess,
+                result.Message,
+                Ticket = result.Data
+            });
+        }
+
     }
 }
