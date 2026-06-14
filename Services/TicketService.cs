@@ -204,6 +204,16 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.AdminGetTicketsByAgentAsync(adminId, agentId);
         }
 
+        public async Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId)
+        {
+            if (ticketId <= 0)
+            {
+                return ServiceResult<TicketAccessInfo>.Failure("Invalid ticket id.");
+            }
+
+            return await _ticketDataAccess.GetTicketAccessInfoAsync(ticketId);
+        }
+
     }
 
 }

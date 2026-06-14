@@ -5,11 +5,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 {
     public interface ITicketDataAccess
     {
-        Task<ServiceResult<int>> CreateTicketAsync(
-            int customerId,
-            string title,
-            string description,
-            string priority);
+        Task<ServiceResult<int>> CreateTicketAsync(int customerId, string title, string description, string priority);
 
         Task<ServiceResult<List<Ticket>>> GetCustomerTicketsAsync(int customerId);
 
@@ -34,6 +30,8 @@ namespace SupportTicketAPI.DataAccess.Interfaces
         Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, string commentText);
 
         Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId);
+
+        Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId);
 
     }
 }

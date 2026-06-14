@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SupportTicketAPI.Authorization.Handlers;
+using SupportTicketAPI.Authorization.Requirements;
+using SupportTicketAPI.Constants;
 using SupportTicketAPI.DataAccess;
 using SupportTicketAPI.DataAccess.Interfaces;
 using SupportTicketAPI.Security;
@@ -47,6 +51,19 @@ namespace SupportTicketAPI
                 };
             });
 
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(
+                    AuthorizationPolicies.CanViewTicketComments,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+
+                        policy.AddRequirements(
+                            new TicketCommentsAccessRequirement());
+                    });
+            });
+
             // Add services to the container.
             builder.Services.AddControllers();
 
@@ -91,8 +108,11 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<IUserDataAccess, UserDataAccess>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+
             builder.Services.AddScoped<ITicketDataAccess, TicketDataAccess>();
             builder.Services.AddScoped<ITicketService, TicketService>();
+
+            builder.Services.AddScoped<IAuthorizationHandler, TicketCommentsAccessHandler>();
 
 
             var app = builder.Build();

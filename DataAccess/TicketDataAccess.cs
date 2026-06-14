@@ -592,6 +592,49 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<List<Ticket>>.Success(tickets, message);
         }
 
+        public async Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_GetTicketAccessInfo", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<TicketAccessInfo>.Failure("Failed to retrieve ticket access info.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+                return ServiceResult<TicketAccessInfo>.Failure(message);
+
+            if (!await reader.NextResultAsync() ||
+                !await reader.ReadAsync())
+            {
+                return ServiceResult<TicketAccessInfo>.Failure(
+                    "Ticket access information not found.");
+            }
+
+            TicketAccessInfo ticketAccessInfo = new()
+            {
+                TicketId = reader.GetInt32(reader.GetOrdinal("TicketId")),
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+
+                AssignedAgentId = reader.IsDBNull(reader.GetOrdinal("AssignedAgentId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("AssignedAgentId")),
+
+                Status = reader.GetString(reader.GetOrdinal("Status"))
+            };
+
+            return ServiceResult<TicketAccessInfo>.Success(ticketAccessInfo, message);
+        }
 
     }
 }
