@@ -62,6 +62,16 @@ namespace SupportTicketAPI
                         policy.AddRequirements(
                             new TicketCommentsAccessRequirement());
                     });
+
+                options.AddPolicy(
+                    AuthorizationPolicies.CanAddTicketComment,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+
+                        policy.AddRequirements(
+                            new TicketCommentWriteRequirement());
+                    });
             });
 
             // Add services to the container.
@@ -113,7 +123,7 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<ITicketService, TicketService>();
 
             builder.Services.AddScoped<IAuthorizationHandler, TicketCommentsAccessHandler>();
-
+            builder.Services.AddScoped<IAuthorizationHandler, TicketCommentWriteHandler>();
 
             var app = builder.Build();
 
