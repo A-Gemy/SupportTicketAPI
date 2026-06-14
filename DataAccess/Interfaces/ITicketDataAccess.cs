@@ -33,5 +33,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId);
 
+        Task<ServiceResult<List<Ticket>>> AgentGetAssignedTicketsAsync(int agentId);
+
     }
 }
