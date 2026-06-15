@@ -13,7 +13,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId);
 
-        Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, string commentText);
+        Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, string commentText);
 
         Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId);
 
@@ -26,8 +26,6 @@ namespace SupportTicketAPI.DataAccess.Interfaces
         Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, int agentId);
 
         Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, string status);
-
-        Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, string commentText);
 
         Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId);
 

@@ -70,10 +70,10 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.CloseCustomerTicketAsync(customerId, ticketId);
         }
 
-        public async Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, AddTicketCommentRequest request)
+        public async Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, AddTicketCommentRequest request)
         {
-            if (customerId <= 0)
-                return ServiceResult<int>.Failure("Invalid customer id.");
+            if (userId <= 0)
+                return ServiceResult<int>.Failure("Invalid user id.");
 
             if (ticketId <= 0)
                 return ServiceResult<int>.Failure("Invalid ticket id.");
@@ -84,8 +84,10 @@ namespace SupportTicketAPI.Services
             if (string.IsNullOrWhiteSpace(request.CommentText))
                 return ServiceResult<int>.Failure("Comment text is required.");
 
-            return await _ticketDataAccess.AddCustomerTicketCommentAsync(
-                customerId, ticketId, request.CommentText.Trim());
+            string commentText = request.CommentText.Trim();
+
+            return await _ticketDataAccess.AddTicketCommentAsync(
+                userId, ticketId, commentText);
         }
 
         public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
@@ -168,26 +170,6 @@ namespace SupportTicketAPI.Services
             }
 
             return await _ticketDataAccess.AdminUpdateTicketStatusAsync(adminId, ticketId, status);
-        }
-
-        public async Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, AddTicketCommentRequest request)
-        {
-            if (adminId <= 0)
-                return ServiceResult<int>.Failure("Invalid admin id.");
-
-            if (ticketId <= 0)
-                return ServiceResult<int>.Failure("Invalid ticket id.");
-
-            if (request == null)
-                return ServiceResult<int>.Failure("Invalid request.");
-
-            if (string.IsNullOrWhiteSpace(request.CommentText))
-                return ServiceResult<int>.Failure("Comment text is required.");
-
-            string commentText = request.CommentText.Trim();
-
-            return await _ticketDataAccess.AddAdminTicketCommentAsync(
-                adminId, ticketId, commentText);
         }
 
         public async Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId)

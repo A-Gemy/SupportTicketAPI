@@ -182,14 +182,14 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<bool>.Failure("Failed to close ticket.");
         }
 
-        public async Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, string commentText)
+        public async Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, string commentText)
         {
             using SqlConnection connection = new(_connectionString);
 
-            using SqlCommand command = new("usp_AddCustomerTicketComment", connection);
+            using SqlCommand command = new("usp_AddTicketComment", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
+            command.Parameters.AddWithValue("@UserId", userId);
             command.Parameters.AddWithValue("@TicketId", ticketId);
             command.Parameters.AddWithValue("@CommentText", commentText);
 
@@ -197,22 +197,19 @@ namespace SupportTicketAPI.DataAccess
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
-            if (await reader.ReadAsync())
-            {
-                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+            if (!await reader.ReadAsync())
+                return ServiceResult<int>.Failure("Failed to add comment.");
 
-                int commentId = reader.IsDBNull(reader.GetOrdinal("CommentId"))
-                    ? 0
-                    : reader.GetInt32(reader.GetOrdinal("CommentId"));
 
-                if (isSuccess)
-                    return ServiceResult<int>.Success(commentId, message);
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
 
+            if (!isSuccess)
                 return ServiceResult<int>.Failure(message);
-            }
 
-            return ServiceResult<int>.Failure("Failed to add comment.");
+            int commentId = reader.GetInt32(reader.GetOrdinal("CommentId"));
+
+            return ServiceResult<int>.Success(commentId, message);
         }
 
         public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
@@ -494,35 +491,6 @@ namespace SupportTicketAPI.DataAccess
                 return ServiceResult<bool>.Failure(message);
 
             return ServiceResult<bool>.Success(true, message);
-        }
-
-        public async Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, string commentText)
-        {
-            using SqlConnection connection = new(_connectionString);
-
-            using SqlCommand command = new("usp_AddAdminTicketComment", connection);
-            command.CommandType = CommandType.StoredProcedure;
-
-            command.Parameters.AddWithValue("@AdminId", adminId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
-            command.Parameters.AddWithValue("@CommentText", commentText);
-
-            await connection.OpenAsync();
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            if (!await reader.ReadAsync())
-                return ServiceResult<int>.Failure("Failed to add comment.");
-
-            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
-
-            if (!isSuccess)
-                return ServiceResult<int>.Failure(message);
-
-            int commentId = reader.GetInt32(reader.GetOrdinal("CommentId"));
-
-            return ServiceResult<int>.Success(commentId, message);
         }
 
         public async Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId)

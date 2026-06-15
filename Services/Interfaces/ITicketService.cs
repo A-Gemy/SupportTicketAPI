@@ -14,7 +14,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId);
 
-        Task<ServiceResult<int>> AddCustomerTicketCommentAsync(int customerId, int ticketId, AddTicketCommentRequest request);
+        Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, AddTicketCommentRequest request);
 
         Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId);
 
@@ -27,8 +27,6 @@ namespace SupportTicketAPI.Services.Interfaces
         Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, AssignTicketRequest request);
 
         Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, UpdateTicketStatusRequest request);
-
-        Task<ServiceResult<int>> AddAdminTicketCommentAsync(int adminId, int ticketId, AddTicketCommentRequest request);
 
         Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId);
 

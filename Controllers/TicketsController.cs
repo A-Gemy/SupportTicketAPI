@@ -189,7 +189,7 @@ namespace SupportTicketAPI.Controllers
 
 
 
-        [Authorize(Roles = UserRoles.Customer)]
+        [Authorize]
         [HttpPost("{ticketId:int}/comments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -197,16 +197,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> AddComment(int ticketId, [FromBody] AddTicketCommentRequest request)
         {
-            if (request == null)
-            {
-                return BadRequest(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request."
-                });
-            }
-
-            if (!TryGetCurrentUserId(out int customerId))
+            if (!TryGetCurrentUserId(out int currentUserId))
             {
                 return Unauthorized(new
                 {
@@ -215,7 +206,40 @@ namespace SupportTicketAPI.Controllers
                 });
             }
 
-            var result = await _ticketService.AddCustomerTicketCommentAsync(customerId, ticketId, request);
+            var accessResult = await _ticketService.GetTicketAccessInfoAsync(ticketId);
+
+            if (!accessResult.IsSuccess ||
+                accessResult.Data == null)
+            {
+                return BadRequest(new
+                {
+                    accessResult.IsSuccess,
+                    accessResult.Message
+                });
+            }
+
+            // Return a clear business error instead of a generic 403.
+            if (accessResult.Data.Status == "Closed")
+            {
+                return BadRequest(new
+                {
+                    IsSuccess = false,
+                    Message =
+                        "Comments cannot be added to a closed ticket."
+                });
+            }
+
+            AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(
+                User,
+                accessResult.Data,
+                AuthorizationPolicies.CanAddTicketComment);
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _ticketService.AddTicketCommentAsync(currentUserId, ticketId, request);
 
             if (!result.IsSuccess)
             {
@@ -469,44 +493,6 @@ namespace SupportTicketAPI.Controllers
             {
                 result.IsSuccess,
                 result.Message
-            });
-        }
-
-
-
-        [Authorize(Roles = UserRoles.Admin)]
-        [HttpPost("admin/{ticketId:int}/comments")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> AddAdminComment(int ticketId, [FromBody] AddTicketCommentRequest request)
-        {
-            if (!TryGetCurrentUserId(out int adminId))
-            {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
-            }
-
-            var result = await _ticketService.AddAdminTicketCommentAsync(adminId, ticketId, request);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
-            }
-
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                CommentId = result.Data
             });
         }
 
