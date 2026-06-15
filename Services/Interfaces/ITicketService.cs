@@ -36,5 +36,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<Ticket>> AgentGetAssignedTicketDetailsAsync(int agentId, int ticketId);
 
+        Task<ServiceResult<bool>> AgentUpdateAssignedTicketStatusAsync(int agentId, int ticketId, UpdateTicketStatusRequest request);
+
     }
 }

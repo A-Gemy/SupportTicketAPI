@@ -725,5 +725,33 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<Ticket>.Success(ticket, message);
         }
 
+        public async Task<ServiceResult<bool>> AgentUpdateAssignedTicketStatusAsync(int agentId, int ticketId, string status)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AgentUpdateAssignedTicketStatus", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@AgentId", agentId);
+            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.AddWithValue("@Status", status);
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return ServiceResult<bool>.Failure("Failed to update ticket status.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+            {
+                return ServiceResult<bool>.Failure(message);
+            }
+
+            return ServiceResult<bool>.Success(true, message);
+        }
     }
 }
