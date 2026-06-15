@@ -218,17 +218,6 @@ namespace SupportTicketAPI.Controllers
                 });
             }
 
-            // Return a clear business error instead of a generic 403.
-            if (accessResult.Data.Status == "Closed")
-            {
-                return BadRequest(new
-                {
-                    IsSuccess = false,
-                    Message =
-                        "Comments cannot be added to a closed ticket."
-                });
-            }
-
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(
                 User,
                 accessResult.Data,
