@@ -122,6 +122,9 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<ITicketDataAccess, TicketDataAccess>();
             builder.Services.AddScoped<ITicketService, TicketService>();
 
+            builder.Services.AddScoped<IAuditLogDataAccess, AuditLogDataAccess>();
+            builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
             builder.Services.AddScoped<IAuthorizationHandler, TicketCommentsAccessHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, TicketCommentWriteHandler>();
 
