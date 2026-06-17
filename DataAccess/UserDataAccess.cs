@@ -24,9 +24,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_RegisterCustomer", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@FullName", fullName);
-            command.Parameters.AddWithValue("@Email", email);
-            command.Parameters.AddWithValue("@PasswordHash", passwordHash);
+
+            command.Parameters.Add("@FullName", SqlDbType.NVarChar, 100)
+                .Value = fullName;
+
+            command.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                .Value = email;
+
+            command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar, 500)
+                .Value = passwordHash;
+
 
             await connection.OpenAsync();
 
@@ -54,7 +61,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetUserByEmail", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                .Value = email;
 
             await connection.OpenAsync();
 
@@ -84,9 +92,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_CreateAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@FullName", fullName);
-            command.Parameters.AddWithValue("@Email", email);
-            command.Parameters.AddWithValue("@PasswordHash", passwordHash);
+
+            command.Parameters.Add("@FullName", SqlDbType.NVarChar, 100)
+                .Value = fullName;
+
+            command.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                .Value = email;
+
+            command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar, 500)
+                .Value = passwordHash;
+
 
             await connection.OpenAsync();
 
@@ -117,9 +132,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_SaveRefreshToken", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@UserId", userId);
-            command.Parameters.AddWithValue("@TokenHash", tokenHash);
-            command.Parameters.AddWithValue("@ExpiresAt", expiresAt);
+
+            command.Parameters.Add("@UserId", SqlDbType.Int)
+                .Value = userId;
+
+            command.Parameters.Add("@TokenHash", SqlDbType.NVarChar, 255)
+                .Value = tokenHash;
+
+            command.Parameters.Add("@ExpiresAt", SqlDbType.DateTime2)
+                .Value = expiresAt;
+
 
             await connection.OpenAsync();
 
@@ -150,7 +172,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetRefreshToken", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@TokenHash", tokenHash);
+            command.Parameters.Add("@TokenHash", SqlDbType.NVarChar, 255)
+                .Value = tokenHash;
 
             await connection.OpenAsync();
 
@@ -192,7 +215,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_RevokeRefreshToken", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@TokenHash", tokenHash);
+            command.Parameters.Add("@TokenHash", SqlDbType.NVarChar, 255)
+                .Value = tokenHash;
 
             await connection.OpenAsync();
 
