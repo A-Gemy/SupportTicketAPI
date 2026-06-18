@@ -620,7 +620,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetTicketAccessInfo", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
 
             await connection.OpenAsync();
 
@@ -666,7 +667,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AgentGetAssignedTickets", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AgentId", agentId);
+            command.Parameters.Add("@AgentId", SqlDbType.Int)
+                .Value = agentId;
 
             await connection.OpenAsync();
 
@@ -728,8 +730,13 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AgentGetAssignedTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AgentId", agentId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            command.Parameters.Add("@AgentId", SqlDbType.Int)
+                .Value = agentId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
 
             await connection.OpenAsync();
 
@@ -786,9 +793,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AgentUpdateAssignedTicketStatus", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AgentId", agentId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
-            command.Parameters.AddWithValue("@Status", status);
+
+            command.Parameters.Add("@AgentId", SqlDbType.Int)
+                .Value = agentId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
+            command.Parameters.Add("@Status", SqlDbType.NVarChar, 50)
+                .Value = status;
+
 
             await connection.OpenAsync();
 
