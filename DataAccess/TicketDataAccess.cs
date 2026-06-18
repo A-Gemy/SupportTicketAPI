@@ -294,7 +294,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetAllTickets", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
 
             await connection.OpenAsync();
 
@@ -354,8 +355,13 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
 
             await connection.OpenAsync();
 
@@ -414,7 +420,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetUnassignedTickets", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
 
             await connection.OpenAsync();
 
@@ -474,9 +481,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AssignTicketToAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
-            command.Parameters.AddWithValue("@AgentId", agentId);
+
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
+            command.Parameters.Add("@AgentId", SqlDbType.Int)
+                .Value = agentId;
+
 
             await connection.OpenAsync();
 
@@ -501,9 +515,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminUpdateTicketStatus", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
-            command.Parameters.AddWithValue("@Status", status);
+
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
+            command.Parameters.Add("@Status", SqlDbType.NVarChar, 50)
+                .Value = status;
+
 
             await connection.OpenAsync();
 
@@ -530,8 +551,13 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetTicketsByAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@AdminId", adminId);
-            command.Parameters.AddWithValue("@AgentId", agentId);
+
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
+
+            command.Parameters.Add("@AgentId", SqlDbType.Int)
+                .Value = agentId;
+
 
             await connection.OpenAsync();
 
@@ -781,5 +807,7 @@ namespace SupportTicketAPI.DataAccess
 
             return ServiceResult<bool>.Success(true, message);
         }
+
+
     }
 }
