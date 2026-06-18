@@ -1,124 +1,106 @@
-﻿# Support Ticket Management API - Requirements
+﻿# SupportTicketAPI — Requirements and Scope
 
 ## Project Goal
 
-Build a small RESTful API for managing support tickets.
+Build a secure RESTful API for managing customer support tickets using ASP.NET Core Web API, ADO.NET, SQL Server, and Stored Procedures.
 
-The project will focus on applying:
+## Technology Stack
 
-- ASP.NET Core Web API
-- ADO.NET
-- SQL Server
-- Stored Procedures
-- JWT Authentication
-- Role-Based Authorization
-- Ownership-Based Authorization
-- Policy-Based Authorization
-- Audit Logs
-- GitHub tracking
+* .NET 8 and ASP.NET Core Web API
+* SQL Server, ADO.NET, and Stored Procedures
+* JWT Authentication and Refresh Tokens
+* BCrypt password hashing
+* Role-Based and Resource-Based Authorization
+* Swagger and GitHub
 
-The first version will be small and focused. More features can be added later.
+## Roles
 
----
-
-## Main Roles
-
-The system will have three roles:
-
-- Customer
-- Agent
-- Admin
-
----
+* Customer
+* Agent
+* Admin
 
 ## Account Rules
 
-Customers can register using the public register endpoint.
+* Customers can register publicly.
+* Agents are created by an Admin.
+* Admin registration is not publicly available.
+* The initial Admin is created using a SQL seed script.
 
-Agents cannot register themselves.
+## Implemented MVP
 
-Admins cannot register from the public register endpoint.
+### Authentication
 
-The first Admin account will be created using a SQL seed script.
-
-Later, Admin can create Agent accounts.
-
----
-
-## Main Ticket Rules
-
-Customers can create support tickets.
-
-Each ticket belongs to one Customer.
-
-A ticket can be assigned to one Agent.
-
-Customers can view only their own tickets.
-
-Agents can view only tickets assigned to them.
-
-Admins can view all tickets.
-
-Admins can assign tickets to Agents.
-
-Admins can view tickets assigned to a specific Agent.
-
-Admins can view unassigned tickets.
-
-Closed tickets cannot receive new comments.
-
----
-
-## MVP Features
+* Customer registration
+* Login and JWT access tokens
+* Refresh token rotation
+* Logout and token revocation
+* Admin creates Agent accounts
+* JWT signing key stored using User Secrets
 
 ### Customer
 
-- Register
-- Login
-- Create ticket
-- View own tickets
-- View own ticket details
-- Add comment to own open ticket
-- Close own ticket
+* Create tickets
+* View own tickets and details
+* Read and add comments
+* Close own tickets
 
 ### Agent
 
-- Login
-- View assigned tickets
-- View assigned ticket details
-- Add comment to assigned open ticket
-- Update assigned ticket status
+* View assigned tickets and details
+* Read and add comments
+* Update status using:
+
+```text
+Assigned → InProgress → Resolved
+```
 
 ### Admin
 
-- Login
-- Create Agent account
-- View all tickets
-- View tickets assigned to a specific Agent
-- View unassigned tickets
-- Assign ticket to Agent
-- Update ticket status
-- Add comment to any open ticket
-- View audit logs
+* View all tickets and ticket details
+* View unassigned tickets
+* Assign or reassign tickets
+* View tickets assigned to an Agent
+* Update ticket status
+* Read and add comments
+* View audit logs with optional filters
 
----
+## Ticket Workflow
 
-## Initial Database Tables
+```text
+Open → Assigned → InProgress → Resolved → Closed
+```
 
-The first database design will start with:
+* Customers access only their own tickets.
+* Agents access only tickets assigned to them.
+* Closed tickets cannot receive comments.
+* Only Admin or Customer closing rules can move a ticket to `Closed`.
 
-- Users
-- RefreshTokens
-- Tickets
-- TicketComments
-- AuditLogs
+## Audit Logging
 
-This design may change during development.
+The system records:
 
----
+* `TicketCreated`
+* `TicketAssigned`
+* `TicketStatusChanged`
+* `TicketCommentAdded`
 
-## Notes
+Audit logs can be filtered by action, actor, entity, and date range.
 
-This document describes the initial agreed scope.
+## Database Tables
 
-Details may be updated as the project grows.
+* Users
+* RefreshTokens
+* Tickets
+* TicketComments
+* AuditLogs
+
+## Deferred Improvements
+
+* Pagination and advanced ticket filters
+* Automated tests
+* Global exception handling
+* Rate limiting
+* Nested comments
+* Improved reassignment workflow
+* Resolved-ticket notifications
+* Production secret management
