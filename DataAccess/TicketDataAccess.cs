@@ -24,10 +24,19 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_CreateTicket", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
-            command.Parameters.AddWithValue("@Title", title);
-            command.Parameters.AddWithValue("@Description", description);
-            command.Parameters.AddWithValue("@Priority", priority);
+
+            command.Parameters.Add("@CustomerId", SqlDbType.Int)
+                .Value = customerId;
+
+            command.Parameters.Add("@Title", SqlDbType.NVarChar, 200)
+                .Value = title;
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 1000)
+                .Value = description;
+
+            command.Parameters.Add("@Priority", SqlDbType.NVarChar, 20)
+                .Value = priority;
+
 
             await connection.OpenAsync();
 
@@ -60,7 +69,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetCustomerTickets", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
+            command.Parameters.Add("@CustomerId", SqlDbType.Int)
+                .Value = customerId;
 
             await connection.OpenAsync();
 
@@ -112,8 +122,13 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetCustomerTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            command.Parameters.Add("@CustomerId", SqlDbType.Int)
+                .Value = customerId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
 
             await connection.OpenAsync();
 
@@ -162,8 +177,13 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_CloseCustomerTicket", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@CustomerId", customerId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+
+            command.Parameters.Add("@CustomerId", SqlDbType.Int)
+                .Value = customerId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
 
             await connection.OpenAsync();
 
@@ -189,9 +209,16 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AddTicketComment", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@UserId", userId);
-            command.Parameters.AddWithValue("@TicketId", ticketId);
-            command.Parameters.AddWithValue("@CommentText", commentText);
+
+            command.Parameters.Add("@UserId", SqlDbType.Int)
+                .Value = userId;
+
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
+
+            command.Parameters.Add("@CommentText", SqlDbType.NVarChar, 1000)
+                .Value = commentText;
+
 
             await connection.OpenAsync();
 
@@ -221,7 +248,8 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetTicketComments", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@TicketId", ticketId);
+            command.Parameters.Add("@TicketId", SqlDbType.Int)
+                .Value = ticketId;
 
             await connection.OpenAsync();
 
