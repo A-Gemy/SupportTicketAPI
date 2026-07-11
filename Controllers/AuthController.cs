@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DTOs.Auth;
 using SupportTicketAPI.Services.Interfaces;
@@ -19,10 +20,11 @@ namespace SupportTicketAPI.Controllers
         }
 
 
-
+        [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
             var result = await _authService.RegisterCustomerAsync(request);
@@ -46,9 +48,11 @@ namespace SupportTicketAPI.Controllers
 
 
 
+        [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Login(LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
@@ -101,9 +105,11 @@ namespace SupportTicketAPI.Controllers
 
 
 
+        [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("refresh-token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
         {
             var result = await _authService.RefreshTokenAsync(request);

@@ -11,6 +11,7 @@ using SupportTicketAPI.Security;
 using SupportTicketAPI.Services;
 using SupportTicketAPI.Services.Interfaces;
 using System.Text;
+using System.Threading.RateLimiting;
 
 
 namespace SupportTicketAPI
@@ -72,6 +73,27 @@ namespace SupportTicketAPI
                         policy.AddRequirements(
                             new TicketCommentWriteRequirement());
                     });
+            });
+
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.AddPolicy(RateLimitingPolicies.Auth, httpContext =>
+                {
+                    var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: ipAddress ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0
+                        });
+                });
             });
 
             // Add services to the container.
@@ -139,10 +161,13 @@ namespace SupportTicketAPI
 
             app.UseHttpsRedirection();
 
+            app.UseRouting();
+
+            app.UseRateLimiter();
+
             app.UseAuthentication();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
