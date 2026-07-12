@@ -79,6 +79,18 @@ namespace SupportTicketAPI
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    context.HttpContext.Response.ContentType = "application/json";
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(new
+                    {
+                        IsSuccess = false,
+                        Message = "Too many requests. Please try again later."
+                    }, cancellationToken);
+                };
+
                 options.AddPolicy(RateLimitingPolicies.Auth, httpContext =>
                 {
                     var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
