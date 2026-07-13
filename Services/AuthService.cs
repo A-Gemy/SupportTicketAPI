@@ -189,22 +189,27 @@ namespace SupportTicketAPI.Services
             return ServiceResult<LoginResponse>.Success(response, "Token refreshed successfully.");
         }
 
-        public async Task<ServiceResult<bool>> LogoutAsync(RefreshTokenRequest request)
+        public async Task<ServiceResult<int>> LogoutAsync(RefreshTokenRequest request)
         {
             if (request == null)
-                return ServiceResult<bool>.Failure("Invalid request.");
+                return ServiceResult<int>.Failure("Invalid request.");
 
             if (string.IsNullOrWhiteSpace(request.RefreshToken))
-                return ServiceResult<bool>.Failure("Refresh token is required.");
+                return ServiceResult<int>.Failure("Refresh token is required.");
 
             string refreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
+
+            var storedRefreshToken = await _userDataAccess.GetRefreshTokenAsync(refreshTokenHash);
+
+            if (storedRefreshToken == null)
+                return ServiceResult<int>.Failure("Invalid refresh token.");
 
             var revokeResult = await _userDataAccess.RevokeRefreshTokenAsync(refreshTokenHash);
 
             if (!revokeResult.IsSuccess)
-                return ServiceResult<bool>.Failure(revokeResult.Message);
+                return ServiceResult<int>.Failure(revokeResult.Message);
 
-            return ServiceResult<bool>.Success(true, "Logged out successfully.");
+            return ServiceResult<int>.Success(storedRefreshToken.UserId, "Logged out successfully.");
         }
 
     }

@@ -171,7 +171,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             await AddSecurityAuditLogAsync(
-                userId: null,
+                userId: result.Data,
                 action: "UserLoggedOut",
                 details: "User logged out successfully.");
 
