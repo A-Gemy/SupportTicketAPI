@@ -115,5 +115,60 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<List<AuditLog>>.Success(auditLogs, message);
         }
 
+        public async Task<ServiceResult<int>> AddAuditLogAsync(
+            int? userId,
+            string action,
+            string? entityName = null,
+            int? entityId = null,
+            string? details = null,
+            string? ipAddress = null)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_AddAuditLog", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@UserId", SqlDbType.Int)
+                .Value = (object?)userId ?? DBNull.Value;
+
+            command.Parameters.Add("@Action", SqlDbType.NVarChar, 100)
+                .Value = action;
+
+            command.Parameters.Add("@EntityName", SqlDbType.NVarChar, 100)
+                .Value = (object?)entityName ?? DBNull.Value;
+
+            command.Parameters.Add("@EntityId", SqlDbType.Int)
+                .Value = (object?)entityId ?? DBNull.Value;
+
+            command.Parameters.Add("@Details", SqlDbType.NVarChar, 1000)
+                .Value = (object?)details ?? DBNull.Value;
+
+            command.Parameters.Add("@IpAddress", SqlDbType.NVarChar, 50)
+                .Value = (object?)ipAddress ?? DBNull.Value;
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                int auditLogId = reader.IsDBNull(reader.GetOrdinal("AuditLogId"))
+                    ? 0
+                    : reader.GetInt32(reader.GetOrdinal("AuditLogId"));
+
+                if (isSuccess)
+                {
+                    return ServiceResult<int>.Success(auditLogId, message);
+                }
+
+                return ServiceResult<int>.Failure(message);
+            }
+
+            return ServiceResult<int>.Failure("Failed to add audit log.");
+        }
+
     }
 }

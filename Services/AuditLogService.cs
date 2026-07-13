@@ -74,5 +74,60 @@ namespace SupportTicketAPI.Services
                 toDate);
         }
 
+        public async Task<ServiceResult<int>> AddAuditLogAsync(
+            int? userId,
+            string action,
+            string? entityName = null,
+            int? entityId = null,
+            string? details = null,
+            string? ipAddress = null)
+        {
+            if (userId.HasValue && userId.Value <= 0)
+            {
+                return ServiceResult<int>.Failure("Invalid user id.");
+            }
+
+            if (string.IsNullOrWhiteSpace(action))
+            {
+                return ServiceResult<int>.Failure("Action is required.");
+            }
+
+            if (action.Trim().Length > 100)
+            {
+                return ServiceResult<int>.Failure("Action cannot exceed 100 characters.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(entityName) &&
+                entityName.Trim().Length > 100)
+            {
+                return ServiceResult<int>.Failure("Entity name cannot exceed 100 characters.");
+            }
+
+            if (entityId.HasValue && entityId.Value <= 0)
+            {
+                return ServiceResult<int>.Failure("Invalid entity id.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(details) &&
+                details.Trim().Length > 1000)
+            {
+                return ServiceResult<int>.Failure("Details cannot exceed 1000 characters.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(ipAddress) &&
+                ipAddress.Trim().Length > 50)
+            {
+                return ServiceResult<int>.Failure("IP address cannot exceed 50 characters.");
+            }
+
+            return await _auditLogDataAccess.AddAuditLogAsync(
+                userId,
+                action.Trim(),
+                string.IsNullOrWhiteSpace(entityName) ? null : entityName.Trim(),
+                entityId,
+                string.IsNullOrWhiteSpace(details) ? null : details.Trim(),
+                string.IsNullOrWhiteSpace(ipAddress) ? null : ipAddress.Trim());
+        }
+
     }
 }
