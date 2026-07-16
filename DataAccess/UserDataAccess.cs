@@ -208,6 +208,51 @@ namespace SupportTicketAPI.DataAccess
             return null;
         }
 
+        public async Task<ServiceResult<RefreshTokenRotationResult>> RotateRefreshTokenAsync(string oldTokenHash, string newTokenHash, DateTime newExpiresAt)
+        {
+            using SqlConnection connection = new(_connectionString);
+
+            using SqlCommand command = new("usp_RotateRefreshToken", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@OldTokenHash", SqlDbType.NVarChar, 255)
+                .Value = oldTokenHash;
+
+            command.Parameters.Add("@NewTokenHash", SqlDbType.NVarChar, 255)
+                .Value = newTokenHash;
+
+            command.Parameters.Add("@NewExpiresAt", SqlDbType.DateTime2)
+                .Value = newExpiresAt;
+
+            await connection.OpenAsync();
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+                string message = reader.GetString(reader.GetOrdinal("Message"));
+
+                if (!isSuccess)
+                {
+                    return ServiceResult<RefreshTokenRotationResult>.Failure(message);
+                }
+
+                RefreshTokenRotationResult rotationResult = new RefreshTokenRotationResult
+                {
+                    UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                    FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                    Email = reader.GetString(reader.GetOrdinal("Email")),
+                    Role = reader.GetString(reader.GetOrdinal("Role")),
+                    RefreshTokenId = reader.GetInt32(reader.GetOrdinal("RefreshTokenId"))
+                };
+
+                return ServiceResult<RefreshTokenRotationResult>.Success(rotationResult, message);
+            }
+
+            return ServiceResult<RefreshTokenRotationResult>.Failure("Failed to rotate refresh token.");
+        }
+
         public async Task<ServiceResult<bool>> RevokeRefreshTokenAsync(string tokenHash)
         {
             using SqlConnection connection = new(_connectionString);

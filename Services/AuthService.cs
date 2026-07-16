@@ -1,6 +1,7 @@
 ﻿using SupportTicketAPI.Common;
 using SupportTicketAPI.DataAccess.Interfaces;
 using SupportTicketAPI.DTOs.Auth;
+using SupportTicketAPI.Models;
 using SupportTicketAPI.Services.Interfaces;
 
 namespace SupportTicketAPI.Services
@@ -137,47 +138,39 @@ namespace SupportTicketAPI.Services
 
             string oldRefreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
 
-            var storedRefreshToken = await _userDataAccess.GetRefreshTokenAsync(oldRefreshTokenHash);
-
-            if (storedRefreshToken == null)
-                return ServiceResult<LoginResponse>.Failure("Invalid refresh token.");
-
-            if (storedRefreshToken.RevokedAt != null)
-                return ServiceResult<LoginResponse>.Failure("Refresh token has been revoked.");
-
-            if (storedRefreshToken.ExpiresAt <= DateTime.UtcNow)
-                return ServiceResult<LoginResponse>.Failure("Refresh token has expired.");
-
-            if (!storedRefreshToken.User.IsActive)
-                return ServiceResult<LoginResponse>.Failure("This account is inactive.");
-
-            var revokeOldTokenResult = await _userDataAccess.RevokeRefreshTokenAsync(oldRefreshTokenHash);
-
-            if (!revokeOldTokenResult.IsSuccess)
-                return ServiceResult<LoginResponse>.Failure(revokeOldTokenResult.Message);
-
-            DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
-            string accessToken = _tokenService.GenerateAccessToken(storedRefreshToken.User, accessTokenExpiresAt);
-
             DateTime newRefreshTokenExpires = _tokenService.GetRefreshTokenExpiration();
             string newRefreshToken = _tokenService.GenerateRefreshToken();
             string newRefreshTokenHash = _tokenService.HashRefreshToken(newRefreshToken);
 
-            var saveNewRefreshTokenResult = await _userDataAccess.SaveRefreshTokenAsync(
-                storedRefreshToken.User.UserId,
+            var rotateResult = await _userDataAccess.RotateRefreshTokenAsync(
+                oldRefreshTokenHash,
                 newRefreshTokenHash,
                 newRefreshTokenExpires
             );
 
-            if (!saveNewRefreshTokenResult.IsSuccess)
-                return ServiceResult<LoginResponse>.Failure(saveNewRefreshTokenResult.Message);
+            if (!rotateResult.IsSuccess)
+                return ServiceResult<LoginResponse>.Failure(rotateResult.Message);
+
+            RefreshTokenRotationResult rotationResult = rotateResult.Data!;
+
+            User user = new User
+            {
+                UserId = rotationResult.UserId,
+                FullName = rotationResult.FullName,
+                Email = rotationResult.Email,
+                Role = rotationResult.Role,
+                IsActive = true
+            };
+
+            DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
+            string accessToken = _tokenService.GenerateAccessToken(user, accessTokenExpiresAt);
 
             var response = new LoginResponse
             {
-                UserId = storedRefreshToken.User.UserId,
-                FullName = storedRefreshToken.User.FullName,
-                Email = storedRefreshToken.User.Email,
-                Role = storedRefreshToken.User.Role,
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
 
                 AccessToken = accessToken,
                 AccessTokenExpiresAt = accessTokenExpiresAt,
