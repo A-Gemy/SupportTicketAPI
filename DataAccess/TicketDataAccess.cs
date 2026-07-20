@@ -285,9 +285,9 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<List<TicketComment>>.Success(comments, message);
         }
 
-        public async Task<ServiceResult<List<Ticket>>> AdminGetAllTicketsAsync(int adminId)
+        public async Task<ServiceResult<PagedResult<Ticket>>> AdminGetAllTicketsAsync(int adminId, int pageNumber = 1, int pageSize = 10)
         {
-            List<Ticket> tickets = new();
+            PagedResult<Ticket> pagedResult = new();
 
             using SqlConnection connection = new(_connectionString);
 
@@ -297,18 +297,28 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
+            command.Parameters.Add("@PageNumber", SqlDbType.Int)
+                .Value = pageNumber;
+
+            command.Parameters.Add("@PageSize", SqlDbType.Int)
+                .Value = pageSize;
+
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
-                return ServiceResult<List<Ticket>>.Failure("Failed to retrieve tickets.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Failed to retrieve tickets.");
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<List<Ticket>>.Failure(message);
+                return ServiceResult<PagedResult<Ticket>>.Failure(message);
+
+            pagedResult.TotalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
+            pagedResult.PageNumber = reader.GetInt32(reader.GetOrdinal("PageNumber"));
+            pagedResult.PageSize = reader.GetInt32(reader.GetOrdinal("PageSize"));
 
             if (await reader.NextResultAsync())
             {
@@ -342,10 +352,10 @@ namespace SupportTicketAPI.DataAccess
                             ? null
                             : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
                     };
-                    tickets.Add(ticket);
+                    pagedResult.Items.Add(ticket);
                 }
             }
-            return ServiceResult<List<Ticket>>.Success(tickets, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
         }
 
         public async Task<ServiceResult<Ticket>> AdminGetTicketDetailsAsync(int adminId, int ticketId)

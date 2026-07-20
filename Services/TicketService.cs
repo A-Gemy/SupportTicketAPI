@@ -98,12 +98,22 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.GetTicketCommentsAsync(ticketId);
         }
 
-        public async Task<ServiceResult<List<Ticket>>> AdminGetAllTicketsAsync(int adminId)
+        public async Task<ServiceResult<PagedResult<Ticket>>> AdminGetAllTicketsAsync(int adminId, int pageNumber = 1, int pageSize = 10)
         {
             if (adminId <= 0)
-                return ServiceResult<List<Ticket>>.Failure("Invalid admin id.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid admin id.");
 
-            return await _ticketDataAccess.AdminGetAllTicketsAsync(adminId);
+            if (pageNumber < 1)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page number must be greater than or equal to 1.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page size must be between 1 and 100.");
+            }
+
+            return await _ticketDataAccess.AdminGetAllTicketsAsync(adminId, pageNumber, pageSize);
         }
 
         public async Task<ServiceResult<Ticket>> AdminGetTicketDetailsAsync(int adminId, int ticketId)
