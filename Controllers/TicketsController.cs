@@ -82,7 +82,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetMyTickets()
+        public async Task<IActionResult> GetMyTickets([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             if (!TryGetCurrentUserId(out int customerId))
             {
@@ -93,7 +93,7 @@ namespace SupportTicketAPI.Controllers
                 });
             }
 
-            var result = await _ticketService.GetCustomerTicketsAsync(customerId);
+            var result = await _ticketService.GetCustomerTicketsAsync(customerId, pageNumber, pageSize);
 
             if (!result.IsSuccess)
             {
@@ -108,7 +108,11 @@ namespace SupportTicketAPI.Controllers
             {
                 result.IsSuccess,
                 result.Message,
-                Tickets = result.Data
+                Tickets = result.Data!.Items,
+                result.Data.PageNumber,
+                result.Data.PageSize,
+                result.Data.TotalCount,
+                result.Data.TotalPages
             });
         }
 

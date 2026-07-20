@@ -7,7 +7,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
     {
         Task<ServiceResult<int>> CreateTicketAsync(int customerId, string title, string description, string priority);
 
-        Task<ServiceResult<List<Ticket>>> GetCustomerTicketsAsync(int customerId);
+        Task<ServiceResult<PagedResult<Ticket>>> GetCustomerTicketsAsync(int customerId, int pageNumber = 1, int pageSize = 10);
 
         Task<ServiceResult<Ticket?>> GetCustomerTicketDetailsAsync(int customerId, int ticketId);
 

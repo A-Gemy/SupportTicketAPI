@@ -40,12 +40,22 @@ namespace SupportTicketAPI.Services
                 priority);
         }
 
-        public async Task<ServiceResult<List<Ticket>>> GetCustomerTicketsAsync(int customerId)
+        public async Task<ServiceResult<PagedResult<Ticket>>> GetCustomerTicketsAsync(int customerId, int pageNumber = 1, int pageSize = 10)
         {
             if (customerId <= 0)
-                return ServiceResult<List<Ticket>>.Failure("Invalid customer id.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid customer id.");
 
-            return await _ticketDataAccess.GetCustomerTicketsAsync(customerId);
+            if (pageNumber < 1)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page number must be greater than or equal to 1.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page size must be between 1 and 100.");
+            }
+
+            return await _ticketDataAccess.GetCustomerTicketsAsync(customerId, pageNumber, pageSize);
         }
 
         public async Task<ServiceResult<Ticket?>> GetCustomerTicketDetailsAsync(int customerId, int ticketId)
