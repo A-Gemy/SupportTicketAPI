@@ -32,7 +32,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId);
 
-        Task<ServiceResult<List<Ticket>>> AgentGetAssignedTicketsAsync(int agentId);
+        Task<ServiceResult<PagedResult<Ticket>>> AgentGetAssignedTicketsAsync(int agentId, int pageNumber = 1, int pageSize = 10);
 
         Task<ServiceResult<Ticket>> AgentGetAssignedTicketDetailsAsync(int agentId, int ticketId);
 

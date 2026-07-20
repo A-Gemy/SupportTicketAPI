@@ -213,12 +213,22 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.GetTicketAccessInfoAsync(ticketId);
         }
 
-        public async Task<ServiceResult<List<Ticket>>> AgentGetAssignedTicketsAsync(int agentId)
+        public async Task<ServiceResult<PagedResult<Ticket>>> AgentGetAssignedTicketsAsync(int agentId, int pageNumber = 1, int pageSize = 10)
         {
             if (agentId <= 0)
-                return ServiceResult<List<Ticket>>.Failure("Invalid agent id.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid agent id.");
 
-            return await _ticketDataAccess.AgentGetAssignedTicketsAsync(agentId);
+            if (pageNumber < 1)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page number must be greater than or equal to 1.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page size must be between 1 and 100.");
+            }
+
+            return await _ticketDataAccess.AgentGetAssignedTicketsAsync(agentId, pageNumber, pageSize);
         }
 
         public async Task<ServiceResult<Ticket>> AgentGetAssignedTicketDetailsAsync(int agentId, int ticketId)
