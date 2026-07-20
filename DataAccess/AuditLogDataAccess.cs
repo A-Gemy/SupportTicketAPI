@@ -16,16 +16,18 @@ namespace SupportTicketAPI.DataAccess
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
         }
 
-        public async Task<ServiceResult<List<AuditLog>>> AdminGetAuditLogsAsync(
+        public async Task<ServiceResult<PagedResult<AuditLog>>> AdminGetAuditLogsAsync(
             int adminId,
             string? action = null,
             int? actorUserId = null,
             string? entityName = null,
             int? entityId = null,
             DateTime? fromDate = null,
-            DateTime? toDate = null)
+            DateTime? toDate = null,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            List<AuditLog> auditLogs = new();
+            PagedResult<AuditLog> pagedResult = new();
 
             using SqlConnection connection = new(_connectionString);
 
@@ -54,13 +56,19 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@ToDate", SqlDbType.DateTime2)
                 .Value = (object?)toDate ?? DBNull.Value;
 
+            command.Parameters.Add("@PageNumber", SqlDbType.Int)
+                .Value = pageNumber;
+
+            command.Parameters.Add("@PageSize", SqlDbType.Int)
+                .Value = pageSize;
+
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
             {
-                return ServiceResult<List<AuditLog>>.Failure("Failed to retrieve audit logs.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Failed to retrieve audit logs.");
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
@@ -68,8 +76,12 @@ namespace SupportTicketAPI.DataAccess
 
             if (!isSuccess)
             {
-                return ServiceResult<List<AuditLog>>.Failure(message);
+                return ServiceResult<PagedResult<AuditLog>>.Failure(message);
             }
+
+            pagedResult.TotalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
+            pagedResult.PageNumber = reader.GetInt32(reader.GetOrdinal("PageNumber"));
+            pagedResult.PageSize = reader.GetInt32(reader.GetOrdinal("PageSize"));
 
             if (await reader.NextResultAsync())
             {
@@ -108,11 +120,11 @@ namespace SupportTicketAPI.DataAccess
                         CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
                     };
 
-                    auditLogs.Add(auditLog);
+                    pagedResult.Items.Add(auditLog);
                 }
             }
 
-            return ServiceResult<List<AuditLog>>.Success(auditLogs, message);
+            return ServiceResult<PagedResult<AuditLog>>.Success(pagedResult, message);
         }
 
         public async Task<ServiceResult<int>> AddAuditLogAsync(

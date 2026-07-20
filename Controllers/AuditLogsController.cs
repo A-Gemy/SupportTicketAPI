@@ -38,8 +38,9 @@ namespace SupportTicketAPI.Controllers
             [FromQuery] string? entityName = null,
             [FromQuery] int? entityId = null,
             [FromQuery] DateTime? fromDate = null,
-            [FromQuery] DateTime? toDate = null
-            )
+            [FromQuery] DateTime? toDate = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             if (!TryGetCurrentUserId(out int adminId))
             {
@@ -57,7 +58,9 @@ namespace SupportTicketAPI.Controllers
                 entityName: entityName,
                 entityId: entityId,
                 fromDate: fromDate,
-                toDate: toDate);
+                toDate: toDate,
+                pageNumber: pageNumber,
+                pageSize: pageSize);
 
             if (!result.IsSuccess)
             {
@@ -72,7 +75,11 @@ namespace SupportTicketAPI.Controllers
             {
                 result.IsSuccess,
                 result.Message,
-                AuditLogs = result.Data
+                AuditLogs = result.Data!.Items,
+                result.Data.PageNumber,
+                result.Data.PageSize,
+                result.Data.TotalCount,
+                result.Data.TotalPages,
             });
         }
 

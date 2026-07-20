@@ -15,35 +15,47 @@ namespace SupportTicketAPI.Services
         }
 
 
-        public async Task<ServiceResult<List<AuditLog>>> AdminGetAuditLogsAsync(
+        public async Task<ServiceResult<PagedResult<AuditLog>>> AdminGetAuditLogsAsync(
             int adminId,
             string? action = null,
             int? actorUserId = null,
             string? entityName = null,
             int? entityId = null,
             DateTime? fromDate = null,
-            DateTime? toDate = null)
+            DateTime? toDate = null,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
             if (adminId <= 0)
             {
-                return ServiceResult<List<AuditLog>>.Failure("Invalid admin id.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Invalid admin id.");
             }
 
             if (actorUserId.HasValue && actorUserId.Value <= 0)
             {
-                return ServiceResult<List<AuditLog>>.Failure("Invalid actor user id.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Invalid actor user id.");
             }
 
             if (entityId.HasValue && entityId.Value <= 0)
             {
-                return ServiceResult<List<AuditLog>>.Failure("Invalid entity id.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Invalid entity id.");
             }
 
             if (fromDate.HasValue &&
                 toDate.HasValue &&
                 fromDate.Value > toDate.Value)
             {
-                return ServiceResult<List<AuditLog>>.Failure("FromDate cannot be later than ToDate.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("FromDate cannot be later than ToDate.");
+            }
+
+            if (pageNumber < 1)
+            {
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Page number must be greater than or equal to 1.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Page size must be between 1 and 100.");
             }
 
             string? normalizedAction = string.IsNullOrWhiteSpace(action)
@@ -56,12 +68,12 @@ namespace SupportTicketAPI.Services
 
             if (normalizedAction?.Length > 100)
             {
-                return ServiceResult<List<AuditLog>>.Failure("Action cannot exceed 100 characters.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Action cannot exceed 100 characters.");
             }
 
             if (normalizedEntityName?.Length > 100)
             {
-                return ServiceResult<List<AuditLog>>.Failure("Entity name cannot exceed 100 characters.");
+                return ServiceResult<PagedResult<AuditLog>>.Failure("Entity name cannot exceed 100 characters.");
             }
 
             return await _auditLogDataAccess.AdminGetAuditLogsAsync(
@@ -71,7 +83,9 @@ namespace SupportTicketAPI.Services
                 normalizedEntityName,
                 entityId,
                 fromDate,
-                toDate);
+                toDate,
+                pageNumber,
+                pageSize);
         }
 
         public async Task<ServiceResult<int>> AddAuditLogAsync(
