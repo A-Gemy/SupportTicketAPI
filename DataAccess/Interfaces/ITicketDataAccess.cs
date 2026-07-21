@@ -27,7 +27,7 @@ namespace SupportTicketAPI.DataAccess.Interfaces
 
         Task<ServiceResult<bool>> AdminUpdateTicketStatusAsync(int adminId, int ticketId, string status);
 
-        Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId);
+        Task<ServiceResult<PagedResult<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId, int pageNumber = 1, int pageSize = 10);
 
         Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId);
 

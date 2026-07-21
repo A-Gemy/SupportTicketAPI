@@ -505,7 +505,7 @@ namespace SupportTicketAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> AdminGetTicketsByAgent(int agentId)
+        public async Task<IActionResult> AdminGetTicketsByAgent(int agentId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             if (!TryGetCurrentUserId(out int adminId))
             {
@@ -518,7 +518,9 @@ namespace SupportTicketAPI.Controllers
 
             var result = await _ticketService.AdminGetTicketsByAgentAsync(
                 adminId,
-                agentId);
+                agentId,
+                pageNumber,
+                pageSize);
 
             if (!result.IsSuccess)
             {
@@ -533,7 +535,11 @@ namespace SupportTicketAPI.Controllers
             {
                 result.IsSuccess,
                 result.Message,
-                Tickets = result.Data
+                Tickets = result.Data!.Items,
+                result.Data.PageNumber,
+                result.Data.PageSize,
+                result.Data.TotalCount,
+                result.Data.TotalPages
             });
         }
 

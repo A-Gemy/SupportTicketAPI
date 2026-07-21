@@ -202,15 +202,21 @@ namespace SupportTicketAPI.Services
             return await _ticketDataAccess.AdminUpdateTicketStatusAsync(adminId, ticketId, status);
         }
 
-        public async Task<ServiceResult<List<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId)
+        public async Task<ServiceResult<PagedResult<Ticket>>> AdminGetTicketsByAgentAsync(int adminId, int agentId, int pageNumber = 1, int pageSize = 10)
         {
             if (adminId <= 0)
-                return ServiceResult<List<Ticket>>.Failure("Invalid admin id.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid admin id.");
 
             if (agentId <= 0)
-                return ServiceResult<List<Ticket>>.Failure("Invalid agent id.");
+                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid agent id.");
 
-            return await _ticketDataAccess.AdminGetTicketsByAgentAsync(adminId, agentId);
+            if (pageNumber < 1)
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page number must be greater than or equal to 1.");
+
+            if (pageSize < 1 || pageSize > 100)
+                return ServiceResult<PagedResult<Ticket>>.Failure("Page size must be between 1 and 100.");
+
+            return await _ticketDataAccess.AdminGetTicketsByAgentAsync(adminId, agentId, pageNumber, pageSize);
         }
 
         public async Task<ServiceResult<TicketAccessInfo>> GetTicketAccessInfoAsync(int ticketId)
