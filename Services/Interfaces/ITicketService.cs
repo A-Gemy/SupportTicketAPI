@@ -22,7 +22,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<Ticket>> AdminGetTicketDetailsAsync(int adminId, int ticketId);
 
-        Task<ServiceResult<List<Ticket>>> AdminGetUnassignedTicketsAsync(int adminId);
+        Task<ServiceResult<PagedResult<Ticket>>> AdminGetUnassignedTicketsAsync(int adminId, int pageNumber = 1, int pageSize = 10);
 
         Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, AssignTicketRequest request);
 
