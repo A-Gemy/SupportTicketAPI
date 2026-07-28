@@ -117,6 +117,10 @@ namespace SupportTicketAPI.DataAccess
                             ? null
                             : reader.GetString(reader.GetOrdinal("Details")),
 
+                        IpAddress = reader.IsDBNull(reader.GetOrdinal("IpAddress"))
+                            ? null
+                            : reader.GetString(reader.GetOrdinal("IpAddress")),
+
                         CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
                     };
 

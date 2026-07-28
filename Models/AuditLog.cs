@@ -18,6 +18,8 @@
 
         public string? Details { get; set; }
 
+        public string? IpAddress { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
     }
