@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DTOs.Auth;
+using SupportTicketAPI.DTOs.Common;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
 
@@ -186,20 +187,40 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize]
         [HttpGet("me")]
+        [ProducesResponseType(
+            typeof(ApiResponse<CurrentUserResponse>),
+            StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var fullName = User.FindFirstValue(ClaimTypes.Name);
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var role = User.FindFirstValue(ClaimTypes.Role);
+            string? userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? fullName = User.FindFirstValue(ClaimTypes.Name);
+            string? email = User.FindFirstValue(ClaimTypes.Email);
+            string? role = User.FindFirstValue(ClaimTypes.Role);
 
-            return Ok(new
+            if (!int.TryParse(userIdClaim, out var userId) ||
+                string.IsNullOrWhiteSpace(fullName) ||
+                string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(role)
+                )
+            {
+                return Unauthorized(
+                    ApiResponse<CurrentUserResponse>.Failure(
+                        "Invalid user token."));
+            }
+
+            CurrentUserResponse currentUser = new()
             {
                 UserId = userId,
                 FullName = fullName,
                 Email = email,
                 Role = role
-            });
+            };
+
+            return Ok(
+                ApiResponse<CurrentUserResponse>.Success(
+                    currentUser,
+                    "Current user retrieved successfully."));
         }
 
 
