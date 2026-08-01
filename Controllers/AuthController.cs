@@ -156,19 +156,18 @@ namespace SupportTicketAPI.Controllers
 
 
         [HttpPost("logout")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Logout(RefreshTokenRequest request)
         {
             var result = await _authService.LogoutAsync(request);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return BadRequest(ApiResponse<object>.Failure(
+                    result.Message));
             }
 
             await AddSecurityAuditLogAsync(
@@ -176,11 +175,9 @@ namespace SupportTicketAPI.Controllers
                 action: "UserLoggedOut",
                 details: "User logged out successfully.");
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message
-            });
+            return Ok(ApiResponse<object>.Success(
+                data: null,
+                result.Message));
         }
 
 
@@ -188,8 +185,7 @@ namespace SupportTicketAPI.Controllers
         [Authorize]
         [HttpGet("me")]
         [ProducesResponseType(
-            typeof(ApiResponse<CurrentUserResponse>),
-            StatusCodes.Status200OK)]
+            typeof(ApiResponse<CurrentUserResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
