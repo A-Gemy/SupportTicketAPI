@@ -58,28 +58,40 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequest request)
         {
             if (request == null)
-                return ServiceResult<LoginResponse>.Failure("Invalid request.");
+            {
+                return ServiceResult<LoginResponse>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return ServiceResult<LoginResponse>.Failure("Email is required.");
+            {
+                return ServiceResult<LoginResponse>.ValidationFailure("Email is required.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Password))
-                return ServiceResult<LoginResponse>.Failure("Password is required.");
+            {
+                return ServiceResult<LoginResponse>.ValidationFailure("Password is required.");
+            }
 
 
-            var user = await _userDataAccess.GetUserByEmailAsync(request.Email.Trim());
+            User? user = await _userDataAccess.GetUserByEmailAsync(request.Email.Trim());
 
 
             if (user == null)
-                return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
+            {
+                return ServiceResult<LoginResponse>.Unauthorized("Invalid email or password.");
+            }
 
             if (!user.IsActive)
-                return ServiceResult<LoginResponse>.Failure("This account is inactive.");
+            {
+                return ServiceResult<LoginResponse>.Forbidden("This account is inactive.");
+            }
 
             bool isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
 
             if (!isPasswordValid)
-                return ServiceResult<LoginResponse>.Failure("Invalid email or password.");
+            {
+                return ServiceResult<LoginResponse>.Unauthorized("Invalid email or password.");
+            }
 
 
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
@@ -96,9 +108,11 @@ namespace SupportTicketAPI.Services
             );
 
             if (!saveRefreshTokenResult.IsSuccess)
+            {
                 return ServiceResult<LoginResponse>.Failure(saveRefreshTokenResult.Message);
+            }
 
-            var loginResponse = new LoginResponse
+            LoginResponse loginResponse = new()
             {
                 UserId = user.UserId,
                 FullName = user.FullName,

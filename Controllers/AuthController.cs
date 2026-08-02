@@ -70,8 +70,16 @@ namespace SupportTicketAPI.Controllers
 
         [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Login(LoginRequest request)
         {
@@ -87,11 +95,15 @@ namespace SupportTicketAPI.Controllers
                         details: "Failed login attempt.");
                 }
 
-                return BadRequest(new
+                var response = ApiResponse<LoginResponse>.Failure(result.Message);
+
+                return result.ResultType switch
                 {
-                    result.IsSuccess,
-                    result.Message
-                });
+                    ResultType.ValidationError => BadRequest(response),
+                    ResultType.Unauthorized => Unauthorized(response),
+                    ResultType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, response),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError, response)
+                };
             }
 
             await AddSecurityAuditLogAsync(
@@ -99,12 +111,10 @@ namespace SupportTicketAPI.Controllers
                 action: "UserLoggedIn",
                 details: "User logged in successfully.");
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                Data = result.Data
-            });
+            return Ok(
+                ApiResponse<LoginResponse>.Success(
+                    result.Data,
+                    result.Message));
         }
 
 
