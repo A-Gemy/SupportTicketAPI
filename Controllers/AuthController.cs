@@ -5,6 +5,7 @@ using SupportTicketAPI.Common;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DTOs.Auth;
 using SupportTicketAPI.DTOs.Common;
+using SupportTicketAPI.Extensions;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
 
@@ -45,14 +46,9 @@ namespace SupportTicketAPI.Controllers
 
             if (!result.IsSuccess)
             {
-                var response = ApiResponse<UserCreatedResponse>.Failure(result.Message);
-
-                if (result.ResultType == ResultType.Conflict)
-                {
-                    return Conflict(response);
-                }
-
-                return BadRequest(response);
+                return this.ToErrorResponse<UserCreatedResponse>(
+                        result.ResultType,
+                        result.Message);
             }
 
             UserCreatedResponse userCreated = new()
@@ -95,15 +91,9 @@ namespace SupportTicketAPI.Controllers
                         details: "Failed login attempt.");
                 }
 
-                var response = ApiResponse<LoginResponse>.Failure(result.Message);
-
-                return result.ResultType switch
-                {
-                    ResultType.ValidationError => BadRequest(response),
-                    ResultType.Unauthorized => Unauthorized(response),
-                    ResultType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, response),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, response)
-                };
+                return this.ToErrorResponse<LoginResponse>(
+                            result.ResultType,
+                            result.Message);
             }
 
             await AddSecurityAuditLogAsync(
@@ -181,14 +171,19 @@ namespace SupportTicketAPI.Controllers
             typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(
             typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Logout(RefreshTokenRequest request)
         {
             var result = await _authService.LogoutAsync(request);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(ApiResponse<object>.Failure(
-                    result.Message));
+                return this.ToErrorResponse<object>(
+                    result.ResultType,
+                    result.Message);
             }
 
             await AddSecurityAuditLogAsync(
@@ -207,7 +202,8 @@ namespace SupportTicketAPI.Controllers
         [HttpGet("me")]
         [ProducesResponseType(
             typeof(ApiResponse<CurrentUserResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<CurrentUserResponse>), StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
             string? userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -221,9 +217,9 @@ namespace SupportTicketAPI.Controllers
                 string.IsNullOrWhiteSpace(role)
                 )
             {
-                return Unauthorized(
-                    ApiResponse<CurrentUserResponse>.Failure(
-                        "Invalid user token."));
+                return this.ToErrorResponse<CurrentUserResponse>(
+                            ResultType.Unauthorized,
+                            "Invalid user claims.");
             }
 
             CurrentUserResponse currentUser = new()
