@@ -242,7 +242,40 @@ namespace SupportTicketAPI.DataAccess
 
                 if (!isSuccess)
                 {
-                    return ServiceResult<RefreshTokenRotationResult>.Failure(message);
+                    return message switch
+                    {
+                        "Old refresh token hash is required." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .ValidationFailure(message),
+
+                        "New refresh token hash is required." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .ValidationFailure(message),
+
+                        "New refresh token expiration must be in the future." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .ValidationFailure(message),
+
+                        "Invalid refresh token." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .Unauthorized(message),
+
+                        "Refresh token has been revoked." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .Unauthorized(message),
+
+                        "Refresh token has expired." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .Unauthorized(message),
+
+                        "This account is inactive." =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .Forbidden(message),
+
+                        _ =>
+                            ServiceResult<RefreshTokenRotationResult>
+                                .Failure(message)
+                    };
                 }
 
                 RefreshTokenRotationResult rotationResult = new RefreshTokenRotationResult

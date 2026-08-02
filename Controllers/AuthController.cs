@@ -140,8 +140,16 @@ namespace SupportTicketAPI.Controllers
 
         [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("refresh-token")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<LoginResponse>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
         {
@@ -149,19 +157,15 @@ namespace SupportTicketAPI.Controllers
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<LoginResponse>(
+                            result.ResultType,
+                            result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                Data = result.Data
-            });
+            return Ok(
+                ApiResponse<LoginResponse>.Success(
+                    result.Data,
+                    result.Message));
         }
 
 

@@ -153,10 +153,14 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest request)
         {
             if (request == null)
-                return ServiceResult<LoginResponse>.Failure("Invalid request.");
+            {
+                return ServiceResult<LoginResponse>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.RefreshToken))
-                return ServiceResult<LoginResponse>.Failure("Refresh token is required.");
+            {
+                return ServiceResult<LoginResponse>.ValidationFailure("Refresh token is required.");
+            }
 
             string oldRefreshTokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
 
@@ -171,7 +175,11 @@ namespace SupportTicketAPI.Services
             );
 
             if (!rotateResult.IsSuccess)
-                return ServiceResult<LoginResponse>.Failure(rotateResult.Message);
+            {
+                return ServiceResult<LoginResponse>.Failure(
+                    rotateResult.Message,
+                    rotateResult.ResultType);
+            }
 
             RefreshTokenRotationResult rotationResult = rotateResult.Data!;
 
@@ -187,7 +195,7 @@ namespace SupportTicketAPI.Services
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
             string accessToken = _tokenService.GenerateAccessToken(user, accessTokenExpiresAt);
 
-            var response = new LoginResponse
+            LoginResponse response = new()
             {
                 UserId = user.UserId,
                 FullName = user.FullName,
