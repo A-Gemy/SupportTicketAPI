@@ -45,9 +45,16 @@ namespace SupportTicketAPI.DataAccess
                 string message = reader.GetString(reader.GetOrdinal("Message")) ?? string.Empty;
 
                 if (!isSuccess)
+                {
+                    if (message == "Email already exists.")
+                    {
+                        return ServiceResult<int>.Conflict(message);
+                    }
                     return ServiceResult<int>.Failure(message);
+                }
 
-                int userId = Convert.ToInt32(reader["UserId"]);
+                int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
+
                 return ServiceResult<int>.Success(userId, message);
             }
 

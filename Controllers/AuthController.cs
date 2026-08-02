@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SupportTicketAPI.Common;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DTOs.Auth;
 using SupportTicketAPI.DTOs.Common;
@@ -31,8 +32,12 @@ namespace SupportTicketAPI.Controllers
 
         [EnableRateLimiting(RateLimitingPolicies.Auth)]
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
@@ -40,19 +45,25 @@ namespace SupportTicketAPI.Controllers
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
+                var response = ApiResponse<UserCreatedResponse>.Failure(result.Message);
+
+                if (result.ResultType == ResultType.Conflict)
                 {
-                    result.IsSuccess,
-                    result.Message
-                });
+                    return Conflict(response);
+                }
+
+                return BadRequest(response);
             }
 
-            return Ok(new
+            UserCreatedResponse userCreated = new()
             {
-                result.IsSuccess,
-                result.Message,
                 UserId = result.Data
-            });
+            };
+
+            return StatusCode(
+                        StatusCodes.Status201Created,
+                        ApiResponse<UserCreatedResponse>.Success(
+                            userCreated, result.Message));
         }
 
 
