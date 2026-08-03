@@ -119,14 +119,19 @@ namespace SupportTicketAPI.DataAccess
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
                 string message = reader.GetString(reader.GetOrdinal("Message"));
 
-                int userId = reader.IsDBNull(reader.GetOrdinal("UserId"))
-                    ? 0
-                    : reader.GetInt32(reader.GetOrdinal("UserId"));
+                if (!isSuccess)
+                {
+                    if (message == "Email already exists.")
+                    {
+                        return ServiceResult<int>.Conflict(message);
+                    }
 
-                if (isSuccess)
-                    return ServiceResult<int>.Success(userId, message);
+                    return ServiceResult<int>.Failure(message);
+                }
 
-                return ServiceResult<int>.Failure(message);
+                int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
+
+                return ServiceResult<int>.Success(userId, message);
             }
 
             return ServiceResult<int>.Failure("Failed to create agent.");

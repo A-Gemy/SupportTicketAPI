@@ -130,16 +130,24 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<int>> CreateAgentAsync(CreateAgentRequest request)
         {
             if (request == null)
-                return ServiceResult<int>.Failure("Invalid request.");
+            {
+                return ServiceResult<int>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.FullName))
-                return ServiceResult<int>.Failure("Full name is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Full name is required.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return ServiceResult<int>.Failure("Email is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Email is required.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Password))
-                return ServiceResult<int>.Failure("Password is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Password is required.");
+            }
 
             string passwordHash = _passwordHasher.HashPassword(request.Password);
 

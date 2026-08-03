@@ -111,29 +111,37 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize(Roles = UserRoles.Admin)]
         [HttpPost("agents")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(
+            typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateAgent(CreateAgentRequest request)
         {
             var result = await _authService.CreateAgentAsync(request);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<UserCreatedResponse>(
+                        result.ResultType,
+                        result.Message);
             }
 
-            return Ok(new
+            UserCreatedResponse createdUser = new()
             {
-                result.IsSuccess,
-                result.Message,
                 UserId = result.Data
-            });
+            };
+
+            return StatusCode(
+                StatusCodes.Status201Created,
+                ApiResponse<UserCreatedResponse>.Success(
+                    createdUser,
+                    result.Message));
         }
 
 
