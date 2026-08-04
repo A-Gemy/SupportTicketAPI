@@ -108,18 +108,15 @@ namespace SupportTicketAPI
                 options.OnRejected = async (context, cancellationToken) =>
                 {
                     context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-                    context.HttpContext.Response.ContentType = "application/json";
 
-                    await context.HttpContext.Response.WriteAsJsonAsync(new
-                    {
-                        IsSuccess = false,
-                        Message = "Too many requests. Please try again later."
-                    }, cancellationToken);
+                    ApiResponse<object> response = ApiResponse<object>.Failure("Too many requests. Please try again later.");
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(response, cancellationToken);
                 };
 
                 options.AddPolicy(RateLimitingPolicies.Auth, httpContext =>
                 {
-                    var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+                    string? ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
 
                     return RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: ipAddress ?? "unknown",
