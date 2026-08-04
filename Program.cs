@@ -51,6 +51,31 @@ namespace SupportTicketAPI
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ClockSkew = TimeSpan.Zero // Optional: reduce default clock skew
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+                        ApiResponse<object> response = ApiResponse<object>.Failure("Authentication failed. A valid access token is required.");
+
+                        await context.Response.WriteAsJsonAsync(response, context.HttpContext.RequestAborted);
+                    },
+
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+                        ApiResponse<object> response = ApiResponse<object>.Failure("You do not have permission to access this resource.");
+
+                        await context.Response.WriteAsJsonAsync(response, context.HttpContext.RequestAborted);
+                    }
+                };
+
+
             });
 
             builder.Services.AddAuthorization(options =>
