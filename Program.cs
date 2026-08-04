@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SupportTicketAPI.Authorization.Handlers;
@@ -7,12 +8,12 @@ using SupportTicketAPI.Authorization.Requirements;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DataAccess;
 using SupportTicketAPI.DataAccess.Interfaces;
+using SupportTicketAPI.DTOs.Common;
 using SupportTicketAPI.Security;
 using SupportTicketAPI.Services;
 using SupportTicketAPI.Services.Interfaces;
 using System.Text;
 using System.Threading.RateLimiting;
-
 
 namespace SupportTicketAPI
 {
@@ -109,7 +110,28 @@ namespace SupportTicketAPI
             });
 
             // Add services to the container.
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    Dictionary<string, string[]> errors = context.ModelState
+                        .Where(entry =>
+                                entry.Value != null &&
+                                entry.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            entry => string.IsNullOrWhiteSpace(entry.Key) ? "Request" : entry.Key,
+                            entry => entry.Value!.Errors.Select(error =>
+                                        string.IsNullOrWhiteSpace(error.ErrorMessage)
+                                                ? "The submitted data is invalid."
+                                                : error.ErrorMessage).ToArray());
+
+                    ApiResponse<object> response =
+                            ApiResponse<object>.Failure("Validation failed.", errors);
+
+                    return new BadRequestObjectResult(response);
+                };
+            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
