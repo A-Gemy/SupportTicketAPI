@@ -91,10 +91,14 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<bool>> CloseCustomerTicketAsync(int customerId, int ticketId)
         {
             if (customerId <= 0)
-                return ServiceResult<bool>.Failure("Invalid customer id.");
+            {
+                return ServiceResult<bool>.Unauthorized("Invalid customer id.");
+            }
 
             if (ticketId <= 0)
-                return ServiceResult<bool>.Failure("Invalid ticket id.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid ticket id.");
+            }
 
             return await _ticketDataAccess.CloseCustomerTicketAsync(customerId, ticketId);
         }

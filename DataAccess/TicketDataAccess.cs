@@ -250,17 +250,35 @@ namespace SupportTicketAPI.DataAccess
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
-            if (await reader.ReadAsync())
+            if (!await reader.ReadAsync())
             {
-                bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
-
-                if (isSuccess)
-                    return ServiceResult<bool>.Success(true, message);
-
-                return ServiceResult<bool>.Failure(message);
+                return ServiceResult<bool>.Failure("Failed to close ticket.");
             }
-            return ServiceResult<bool>.Failure("Failed to close ticket.");
+
+            bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
+            string message = reader.GetString(reader.GetOrdinal("Message"));
+
+            if (!isSuccess)
+            {
+                return message switch
+                {
+                    "Customer not found or inactive." =>
+                        ServiceResult<bool>.Forbidden(
+                            message),
+
+                    "Ticket not found." =>
+                        ServiceResult<bool>.NotFound(
+                            message),
+
+                    "Ticket is already closed." =>
+                        ServiceResult<bool>.Conflict(
+                            message),
+
+                    _ => ServiceResult<bool>.Failure(message)
+                };
+            }
+
+            return ServiceResult<bool>.Success(true, message);
         }
 
         public async Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, string commentText)

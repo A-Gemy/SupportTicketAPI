@@ -156,37 +156,41 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize(Roles = UserRoles.Customer)]
         [HttpPatch("{ticketId:int}/close")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(
+            typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CloseTicket(int ticketId)
         {
             if (!TryGetCurrentUserId(out int customerId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<object>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
             }
 
             var result = await _ticketService.CloseCustomerTicketAsync(customerId, ticketId);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<object>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message
-            });
+            return Ok(ApiResponse<object>.Success(
+                data: null,
+                message: result.Message));
         }
 
 
