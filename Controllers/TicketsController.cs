@@ -118,38 +118,38 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize(Roles = UserRoles.Customer)]
         [HttpGet("{ticketId:int}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<Ticket>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<Ticket>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<Ticket>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(
+            typeof(ApiResponse<Ticket>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTicketDetails(int ticketId)
         {
             if (!TryGetCurrentUserId(out int customerId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<Ticket>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
             }
 
             var result = await _ticketService.GetCustomerTicketDetailsAsync(customerId, ticketId);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<Ticket>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                Ticket = result.Data
-            });
+            return Ok(
+                ApiResponse<Ticket>.Success(
+                    result.Data!,
+                    result.Message));
         }
 
 

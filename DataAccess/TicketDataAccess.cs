@@ -177,38 +177,57 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<Ticket?>.Failure("Failed to retrieve ticket details.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<Ticket?>.Failure(message);
-
-            Ticket? ticket = null;
-
-            if (await reader.NextResultAsync() && await reader.ReadAsync())
             {
-                ticket = new()
+                return message switch
                 {
-                    TicketId = reader.GetInt32(reader.GetOrdinal("TicketId")),
-                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-                    AssignedAgentId = reader.IsDBNull(reader.GetOrdinal("AssignedAgentId"))
-                        ? null
-                        : reader.GetInt32(reader.GetOrdinal("AssignedAgentId")),
-                    Title = reader.GetString(reader.GetOrdinal("Title")),
-                    Description = reader.GetString(reader.GetOrdinal("Description")),
-                    Status = reader.GetString(reader.GetOrdinal("Status")),
-                    Priority = reader.GetString(reader.GetOrdinal("Priority")),
-                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
-                    UpdatedAt = reader.IsDBNull(reader.GetOrdinal("UpdatedAt"))
-                        ? null
-                        : reader.GetDateTime(reader.GetOrdinal("UpdatedAt")),
-                    ClosedAt = reader.IsDBNull(reader.GetOrdinal("ClosedAt"))
-                        ? null
-                        : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
+                    "Customer not found or inactive." =>
+                        ServiceResult<Ticket?>.Forbidden(
+                            message),
+
+                    "Ticket not found." =>
+                        ServiceResult<Ticket?>.NotFound(
+                            message),
+
+                    _ =>
+                        ServiceResult<Ticket?>.Failure(
+                            message)
                 };
             }
+
+            if (!await reader.NextResultAsync() ||
+                !await reader.ReadAsync())
+            {
+                return ServiceResult<Ticket?>.Failure("Failed to retrieve ticket details.");
+            }
+
+            Ticket ticket = new()
+            {
+                TicketId = reader.GetInt32(reader.GetOrdinal("TicketId")),
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                AssignedAgentId = reader.IsDBNull(reader.GetOrdinal("AssignedAgentId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("AssignedAgentId")),
+                Title = reader.GetString(reader.GetOrdinal("Title")),
+                Description = reader.GetString(reader.GetOrdinal("Description")),
+                Status = reader.GetString(reader.GetOrdinal("Status")),
+                Priority = reader.GetString(reader.GetOrdinal("Priority")),
+                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("UpdatedAt"))
+                    ? null
+                    : reader.GetDateTime(reader.GetOrdinal("UpdatedAt")),
+                ClosedAt = reader.IsDBNull(reader.GetOrdinal("ClosedAt"))
+                    ? null
+                    : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
+            };
+
             return ServiceResult<Ticket?>.Success(ticket, message);
         }
 
