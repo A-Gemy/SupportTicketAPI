@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupportTicketAPI.Common;
 using SupportTicketAPI.Constants;
+using SupportTicketAPI.DTOs.Common;
 using SupportTicketAPI.DTOs.Tickets;
+using SupportTicketAPI.Extensions;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
 
@@ -25,54 +28,55 @@ namespace SupportTicketAPI.Controllers
         {
             string? userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            return int.TryParse(userIdValue, out userId);
+            return int.TryParse(userIdValue, out userId) && userId > 0;
         }
 
 
 
         [Authorize(Roles = UserRoles.Customer)]
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCreatedResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCreatedResponse>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCreatedResponse>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCreatedResponse>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCreatedResponse>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
         {
-            if (request == null)
-            {
-                return BadRequest(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request."
-                });
-            }
-
             if (!TryGetCurrentUserId(out int customerId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<TicketCreatedResponse>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
             }
 
             var result = await _ticketService.CreateTicketAsync(customerId, request);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<TicketCreatedResponse>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
+            TicketCreatedResponse createdTicket = new()
             {
-                result.IsSuccess,
-                result.Message,
                 TicketId = result.Data
-            });
+            };
+
+            return CreatedAtAction(
+                nameof(GetTicketDetails),
+                new
+                {
+                    ticketId = createdTicket.TicketId,
+                },
+                ApiResponse<TicketCreatedResponse>.Success(
+                    createdTicket,
+                    result.Message));
         }
 
 

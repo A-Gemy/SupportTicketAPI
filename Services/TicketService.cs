@@ -17,21 +17,34 @@ namespace SupportTicketAPI.Services
 
         public async Task<ServiceResult<int>> CreateTicketAsync(int customerId, CreateTicketRequest request)
         {
+            if (customerId <= 0)
+            {
+                return ServiceResult<int>.Unauthorized("Invalid customer id.");
+            }
+
             if (request == null)
-                return ServiceResult<int>.Failure("Invalid request.");
+            {
+                return ServiceResult<int>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Title))
-                return ServiceResult<int>.Failure("Title is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Title is required.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Description))
-                return ServiceResult<int>.Failure("Description is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Description is required.");
+            }
 
             string priority = string.IsNullOrWhiteSpace(request.Priority)
                 ? "Medium"
                 : request.Priority.Trim();
 
             if (priority != "Low" && priority != "Medium" && priority != "High")
-                return ServiceResult<int>.Failure("Invalid priority.");
+            {
+                return ServiceResult<int>.ValidationFailure("Invalid priority.");
+            }
 
             return await _ticketDataAccess.CreateTicketAsync(
                 customerId,

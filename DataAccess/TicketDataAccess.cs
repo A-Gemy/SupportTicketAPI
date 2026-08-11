@@ -51,10 +51,21 @@ namespace SupportTicketAPI.DataAccess
                     ? 0
                     : reader.GetInt32(reader.GetOrdinal("TicketId"));
 
-                if (isSuccess)
-                    return ServiceResult<int>.Success(ticketId, message);
+                if (!isSuccess)
+                {
+                    return message switch
+                    {
+                        "Customer not found or inactive." =>
+                             ServiceResult<int>.Forbidden(message),
 
-                return ServiceResult<int>.Failure(message);
+                        "Invalid priority." =>
+                            ServiceResult<int>.ValidationFailure(message),
+
+                        _ => ServiceResult<int>.Failure(message),
+                    };
+                }
+
+                return ServiceResult<int>.Success(ticketId, message);
             }
 
             return ServiceResult<int>.Failure("Failed to create ticket.");
