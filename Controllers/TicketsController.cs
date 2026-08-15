@@ -197,60 +197,65 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize]
         [HttpPost("{ticketId:int}/comments")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCommentCreatedResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCommentCreatedResponse>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCommentCreatedResponse>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(
+            typeof(ApiResponse<TicketCommentCreatedResponse>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddComment(int ticketId, [FromBody] AddTicketCommentRequest request)
         {
             if (!TryGetCurrentUserId(out int currentUserId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<TicketCommentCreatedResponse>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
             }
 
             var accessResult = await _ticketService.GetTicketAccessInfoAsync(ticketId);
 
-            if (!accessResult.IsSuccess ||
-                accessResult.Data == null)
+            if (!accessResult.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    accessResult.IsSuccess,
-                    accessResult.Message
-                });
+                return this.ToErrorResponse<TicketCommentCreatedResponse>(
+                    accessResult.ResultType,
+                    accessResult.Message);
             }
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(
                 User,
-                accessResult.Data,
+                accessResult.Data!,
                 AuthorizationPolicies.CanAddTicketComment);
 
             if (!authorizationResult.Succeeded)
             {
-                return Forbid();
+                return this.ToErrorResponse<TicketCommentCreatedResponse>(
+                    ResultType.Forbidden,
+                    "You do not have permission to add comments to this ticket.");
             }
 
             var result = await _ticketService.AddTicketCommentAsync(currentUserId, ticketId, request);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<TicketCommentCreatedResponse>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
+            TicketCommentCreatedResponse createdComment = new()
             {
-                result.IsSuccess,
-                result.Message,
                 CommentId = result.Data
-            });
+            };
+
+            return StatusCode(
+                StatusCodes.Status201Created,
+                ApiResponse<TicketCommentCreatedResponse>.Success(
+                    createdComment, result.Message));
         }
 
 

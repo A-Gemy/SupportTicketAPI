@@ -106,16 +106,24 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<int>> AddTicketCommentAsync(int userId, int ticketId, AddTicketCommentRequest request)
         {
             if (userId <= 0)
-                return ServiceResult<int>.Failure("Invalid user id.");
+            {
+                return ServiceResult<int>.Unauthorized("Invalid user id.");
+            }
 
             if (ticketId <= 0)
-                return ServiceResult<int>.Failure("Invalid ticket id.");
+            {
+                return ServiceResult<int>.ValidationFailure("Invalid ticket id.");
+            }
 
             if (request == null)
-                return ServiceResult<int>.Failure("Invalid request.");
+            {
+                return ServiceResult<int>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.CommentText))
-                return ServiceResult<int>.Failure("Comment text is required.");
+            {
+                return ServiceResult<int>.ValidationFailure("Comment text is required.");
+            }
 
             string commentText = request.CommentText.Trim();
 
@@ -246,7 +254,7 @@ namespace SupportTicketAPI.Services
         {
             if (ticketId <= 0)
             {
-                return ServiceResult<TicketAccessInfo>.Failure("Invalid ticket id.");
+                return ServiceResult<TicketAccessInfo>.ValidationFailure("Invalid ticket id.");
             }
 
             return await _ticketDataAccess.GetTicketAccessInfoAsync(ticketId);

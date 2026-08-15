@@ -14,23 +14,21 @@ namespace SupportTicketAPI.Authorization.Handlers
             TicketCommentWriteRequirement requirement,
             TicketAccessInfo resource)
         {
-            // No comments are allowed on closed tickets.
-            if (resource.Status == "Closed")
-                return Task.CompletedTask;
-
             string? userIdValue = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (!int.TryParse(userIdValue, out var currentUserId))
+            {
                 return Task.CompletedTask;
+            }
 
-            // Admin can comment on any non-closed ticket.
+            // Admin can access comments for any ticket.
             if (context.User.IsInRole(UserRoles.Admin))
             {
                 context.Succeed(requirement);
                 return Task.CompletedTask;
             }
 
-            // Customer can comment on owned non-closed tickets.
+            // Customer can access comments for owned tickets.
             if (context.User.IsInRole(UserRoles.Customer) &&
                 resource.CustomerId == currentUserId)
             {
@@ -38,7 +36,7 @@ namespace SupportTicketAPI.Authorization.Handlers
                 return Task.CompletedTask;
             }
 
-            // Agent can comment on assigned non-closed tickets.
+            // Agent can access comments for assigned tickets.
             if (context.User.IsInRole(UserRoles.Agent) &&
                 resource.AssignedAgentId == currentUserId)
             {

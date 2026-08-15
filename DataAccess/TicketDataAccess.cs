@@ -304,14 +304,36 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<int>.Failure("Failed to add comment.");
-
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<int>.Failure(message);
+            {
+                return message switch
+                {
+                    "Comment text is required." =>
+                        ServiceResult<int>.ValidationFailure(message),
+
+                    "User not found or inactive." =>
+                        ServiceResult<int>.Forbidden(message),
+
+                    "Ticket not found." =>
+                        ServiceResult<int>.NotFound(message),
+
+                    "Comments cannot be added to a closed ticket." =>
+                        ServiceResult<int>.Conflict(message),
+
+                    "You are not authorized to add comments to this ticket." =>
+                        ServiceResult<int>.Forbidden(message),
+
+                    _ =>
+                        ServiceResult<int>.Failure(message)
+                };
+            }
 
             int commentId = reader.GetInt32(reader.GetOrdinal("CommentId"));
 
@@ -740,13 +762,22 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<TicketAccessInfo>.Failure("Failed to retrieve ticket access info.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
+            {
+                if (message == "Ticket not found.")
+                {
+                    return ServiceResult<TicketAccessInfo>.NotFound(message);
+                }
+
                 return ServiceResult<TicketAccessInfo>.Failure(message);
+            }
 
             if (!await reader.NextResultAsync() ||
                 !await reader.ReadAsync())
