@@ -134,7 +134,9 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
         {
             if (ticketId <= 0)
-                return ServiceResult<List<TicketComment>>.Failure("Invalid ticket id.");
+            {
+                return ServiceResult<List<TicketComment>>.ValidationFailure("Invalid ticket id.");
+            }
 
             return await _ticketDataAccess.GetTicketCommentsAsync(ticketId);
         }

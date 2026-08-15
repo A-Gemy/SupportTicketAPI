@@ -357,13 +357,22 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<List<TicketComment>>.Failure("Failed to retrieve ticket comments.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
+            {
+                if (message == "Ticket not found.")
+                {
+                    return ServiceResult<List<TicketComment>>.NotFound(message);
+                }
+
                 return ServiceResult<List<TicketComment>>.Failure(message);
+            }
 
             if (await reader.NextResultAsync())
             {

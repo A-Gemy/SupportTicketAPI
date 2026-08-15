@@ -262,50 +262,59 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize]
         [HttpGet("{ticketId:int}/comments")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(
+            typeof(ApiResponse<List<TicketComment>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<List<TicketComment>>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<List<TicketComment>>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(
+            typeof(ApiResponse<List<TicketComment>>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetComments(int ticketId)
         {
+            if (!TryGetCurrentUserId(out _))
+            {
+                return this.ToErrorResponse<List<TicketComment>>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
+            }
+
             var accessResult = await _ticketService.GetTicketAccessInfoAsync(ticketId);
 
-            if (!accessResult.IsSuccess || accessResult.Data == null)
+            if (!accessResult.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    accessResult.IsSuccess,
-                    accessResult.Message
-                });
+                return this.ToErrorResponse<List<TicketComment>>(
+                    accessResult.ResultType,
+                    accessResult.Message);
             }
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(
                 User,
-                accessResult.Data,
+                accessResult.Data!,
                 AuthorizationPolicies.CanViewTicketComments);
 
             if (!authorizationResult.Succeeded)
             {
-                return Forbid();
+                return this.ToErrorResponse<List<TicketComment>>(
+                    ResultType.Forbidden,
+                    "You do not have permission to view comments for this ticket.");
             }
 
             var result = await _ticketService.GetTicketCommentsAsync(ticketId);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<List<TicketComment>>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                Comments = result.Data
-            });
+            return Ok(
+                ApiResponse<List<TicketComment>>.Success(
+                    result.Data!,
+                    result.Message));
         }
 
 
