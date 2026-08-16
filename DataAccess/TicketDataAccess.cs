@@ -418,13 +418,29 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<PagedResult<Ticket>>.Failure("Failed to retrieve tickets.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<PagedResult<Ticket>>.Failure(message);
+            {
+                return message switch
+                {
+                    "Admin not found or inactive." =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+
+                    "Page number must be greater than or equal to 1." =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+
+                    "Page size must be between 1 and 100." =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+
+                    _ => ServiceResult<PagedResult<Ticket>>.Failure(message)
+                };
+            }
 
             pagedResult.TotalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             pagedResult.PageNumber = reader.GetInt32(reader.GetOrdinal("PageNumber"));
@@ -465,6 +481,7 @@ namespace SupportTicketAPI.DataAccess
                     pagedResult.Items.Add(ticket);
                 }
             }
+
             return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
         }
 
