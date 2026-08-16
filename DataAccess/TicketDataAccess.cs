@@ -678,13 +678,32 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<bool>.Failure("Failed to assign ticket to agent.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<bool>.Failure(message);
+            {
+                return message switch
+                {
+                    "Admin not found or inactive." =>
+                        ServiceResult<bool>.Forbidden(message),
+
+                    "Ticket not found." =>
+                        ServiceResult<bool>.NotFound(message),
+
+                    "Agent not found or inactive." =>
+                        ServiceResult<bool>.NotFound(message),
+
+                    "Closed tickets cannot be assigned." =>
+                        ServiceResult<bool>.Conflict(message),
+
+                    _ => ServiceResult<bool>.Failure(message)
+                };
+            }
 
             return ServiceResult<bool>.Success(true, message);
         }

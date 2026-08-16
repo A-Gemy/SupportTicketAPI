@@ -199,16 +199,24 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<bool>> AssignTicketToAgentAsync(int adminId, int ticketId, AssignTicketRequest request)
         {
             if (adminId <= 0)
-                return ServiceResult<bool>.Failure("Invalid admin id.");
+            {
+                return ServiceResult<bool>.Unauthorized("Invalid admin id.");
+            }
 
             if (ticketId <= 0)
-                return ServiceResult<bool>.Failure("Invalid ticket id.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid ticket id.");
+            }
 
             if (request == null)
-                return ServiceResult<bool>.Failure("Invalid request.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid request.");
+            }
 
             if (request.AgentId <= 0)
-                return ServiceResult<bool>.Failure("Invalid agent id.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid agent id.");
+            }
 
             return await _ticketDataAccess.AssignTicketToAgentAsync(
                 adminId,
