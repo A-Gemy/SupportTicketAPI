@@ -804,7 +804,25 @@ namespace SupportTicketAPI.DataAccess
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<PagedResult<Ticket>>.Failure(message);
+            {
+                return message switch
+                {
+                    "Admin not found or inactive." =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+
+                    "Agent not found or inactive." =>
+                        ServiceResult<PagedResult<Ticket>>.NotFound(message),
+
+                    "Page number must be greater than or equal to 1." =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+
+                    "Page size must be between 1 and 100." =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+
+                    _ =>
+                        ServiceResult<PagedResult<Ticket>>.Failure(message)
+                };
+            }
 
             pagedResult.TotalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             pagedResult.PageNumber = reader.GetInt32(reader.GetOrdinal("PageNumber"));
