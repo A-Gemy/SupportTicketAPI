@@ -1034,16 +1034,33 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<Ticket>.Failure("Failed to retrieve ticket details.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
-                return ServiceResult<Ticket>.Failure(message);
+            {
+                return message switch
+                {
+                    "Agent not found or inactive." =>
+                        ServiceResult<Ticket>.Forbidden(message),
 
-            if (!await reader.NextResultAsync() || !await reader.ReadAsync())
+                    "Ticket not found." =>
+                        ServiceResult<Ticket>.NotFound(message),
+
+                    _ =>
+                        ServiceResult<Ticket>.Failure(message)
+                };
+            }
+
+            if (!await reader.NextResultAsync() ||
+                !await reader.ReadAsync())
+            {
                 return ServiceResult<Ticket>.Failure("Ticket details not found.");
+            }
 
             Ticket ticket = new()
             {
