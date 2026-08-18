@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupportTicketAPI.Common;
 using SupportTicketAPI.Constants;
+using SupportTicketAPI.DTOs.Common;
+using SupportTicketAPI.Extensions;
+using SupportTicketAPI.Models;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
 
@@ -28,10 +32,13 @@ namespace SupportTicketAPI.Controllers
 
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<PagedResult<AuditLog>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<PagedResult<AuditLog>>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAuditLogs(
             [FromQuery] string? action = null,
             [FromQuery] int? actorUserId = null,
@@ -44,11 +51,9 @@ namespace SupportTicketAPI.Controllers
         {
             if (!TryGetCurrentUserId(out int adminId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<PagedResult<AuditLog>>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
             }
 
             var result = await _auditLogService.AdminGetAuditLogsAsync(
@@ -64,23 +69,15 @@ namespace SupportTicketAPI.Controllers
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<PagedResult<AuditLog>>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                AuditLogs = result.Data!.Items,
-                result.Data.PageNumber,
-                result.Data.PageSize,
-                result.Data.TotalCount,
-                result.Data.TotalPages,
-            });
+            return Ok(
+                ApiResponse<PagedResult<AuditLog>>.Success(
+                    result.Data!,
+                    result.Message));
         }
 
 

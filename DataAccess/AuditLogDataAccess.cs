@@ -76,7 +76,23 @@ namespace SupportTicketAPI.DataAccess
 
             if (!isSuccess)
             {
-                return ServiceResult<PagedResult<AuditLog>>.Failure(message);
+                return message switch
+                {
+                    "Admin not found or inactive." =>
+                        ServiceResult<PagedResult<AuditLog>>.Forbidden(message),
+
+                    "FromDate cannot be later than ToDate." =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+
+                    "Page number must be greater than or equal to 1." =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+
+                    "Page size must be between 1 and 100." =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+
+                    _ =>
+                        ServiceResult<PagedResult<AuditLog>>.Failure(message)
+                };
             }
 
             pagedResult.TotalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
