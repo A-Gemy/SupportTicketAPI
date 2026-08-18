@@ -297,16 +297,18 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<PagedResult<Ticket>>> AgentGetAssignedTicketsAsync(int agentId, int pageNumber = 1, int pageSize = 10)
         {
             if (agentId <= 0)
-                return ServiceResult<PagedResult<Ticket>>.Failure("Invalid agent id.");
+            {
+                return ServiceResult<PagedResult<Ticket>>.Unauthorized("Invalid agent id.");
+            }
 
             if (pageNumber < 1)
             {
-                return ServiceResult<PagedResult<Ticket>>.Failure("Page number must be greater than or equal to 1.");
+                return ServiceResult<PagedResult<Ticket>>.ValidationFailure("Page number must be greater than or equal to 1.");
             }
 
             if (pageSize < 1 || pageSize > 100)
             {
-                return ServiceResult<PagedResult<Ticket>>.Failure("Page size must be between 1 and 100.");
+                return ServiceResult<PagedResult<Ticket>>.ValidationFailure("Page size must be between 1 and 100.");
             }
 
             return await _ticketDataAccess.AgentGetAssignedTicketsAsync(agentId, pageNumber, pageSize);

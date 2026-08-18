@@ -554,42 +554,35 @@ namespace SupportTicketAPI.Controllers
 
         [Authorize(Roles = UserRoles.Agent)]
         [HttpGet("assigned-to-me")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            typeof(ApiResponse<PagedResult<Ticket>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(
+            typeof(ApiResponse<PagedResult<Ticket>>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AgentGetAssignedTickets([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             if (!TryGetCurrentUserId(out int agentId))
             {
-                return Unauthorized(new
-                {
-                    IsSuccess = false,
-                    Message = "Invalid user token."
-                });
+                return this.ToErrorResponse<PagedResult<Ticket>>(
+                   ResultType.Unauthorized,
+                   "Invalid user token.");
             }
 
             var result = await _ticketService.AgentGetAssignedTicketsAsync(agentId, pageNumber, pageSize);
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new
-                {
-                    result.IsSuccess,
-                    result.Message
-                });
+                return this.ToErrorResponse<PagedResult<Ticket>>(
+                    result.ResultType,
+                    result.Message);
             }
 
-            return Ok(new
-            {
-                result.IsSuccess,
-                result.Message,
-                Tickets = result.Data!.Items,
-                result.Data.PageNumber,
-                result.Data.PageSize,
-                result.Data.TotalCount,
-                result.Data.TotalPages
-            });
+            return Ok(
+                ApiResponse<PagedResult<Ticket>>.Success(
+                    result.Data!,
+                    result.Message));
         }
 
 
