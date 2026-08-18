@@ -1117,14 +1117,41 @@ namespace SupportTicketAPI.DataAccess
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             if (!await reader.ReadAsync())
+            {
                 return ServiceResult<bool>.Failure("Failed to update ticket status.");
+            }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
             string message = reader.GetString(reader.GetOrdinal("Message"));
 
             if (!isSuccess)
             {
-                return ServiceResult<bool>.Failure(message);
+                return message switch
+                {
+                    "Agent not found or inactive." =>
+                        ServiceResult<bool>.Forbidden(message),
+
+                    "Ticket not found." =>
+                        ServiceResult<bool>.NotFound(message),
+
+                    "Invalid ticket status." =>
+                        ServiceResult<bool>.ValidationFailure(message),
+
+                    "Closed tickets cannot be updated." =>
+                        ServiceResult<bool>.Conflict(message),
+
+                    "Resolved tickets cannot be updated by the agent." =>
+                        ServiceResult<bool>.Conflict(message),
+
+                    "Only an assigned ticket can be moved to InProgress." =>
+                        ServiceResult<bool>.Conflict(message),
+
+                    "Ticket must be InProgress before it can be resolved." =>
+                        ServiceResult<bool>.Conflict(message),
+
+                    _ =>
+                        ServiceResult<bool>.Failure(message)
+                };
             }
 
             return ServiceResult<bool>.Success(true, message);

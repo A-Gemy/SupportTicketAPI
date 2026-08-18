@@ -332,23 +332,31 @@ namespace SupportTicketAPI.Services
         public async Task<ServiceResult<bool>> AgentUpdateAssignedTicketStatusAsync(int agentId, int ticketId, UpdateTicketStatusRequest request)
         {
             if (agentId <= 0)
-                return ServiceResult<bool>.Failure("Invalid agent id.");
+            {
+                return ServiceResult<bool>.Unauthorized("Invalid agent id.");
+            }
 
             if (ticketId <= 0)
-                return ServiceResult<bool>.Failure("Invalid ticket id.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid ticket id.");
+            }
 
             if (request == null)
-                return ServiceResult<bool>.Failure("Invalid request.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Invalid request.");
+            }
 
             if (string.IsNullOrWhiteSpace(request.Status))
-                return ServiceResult<bool>.Failure("Ticket status is required.");
+            {
+                return ServiceResult<bool>.ValidationFailure("Ticket status is required.");
+            }
 
             string status = request.Status.Trim();
 
             if (status != "InProgress" &&
                 status != "Resolved")
             {
-                return ServiceResult<bool>.Failure("Agent can only change ticket status to InProgress or Resolved.");
+                return ServiceResult<bool>.ValidationFailure("Agent can only change ticket status to InProgress or Resolved.");
             }
 
             return await _ticketDataAccess.AgentUpdateAssignedTicketStatusAsync(agentId, ticketId, status);
