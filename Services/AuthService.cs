@@ -72,18 +72,11 @@ namespace SupportTicketAPI.Services
                 return ServiceResult<LoginResponse>.ValidationFailure("Password is required.");
             }
 
-
             User? user = await _userDataAccess.GetUserByEmailAsync(request.Email.Trim());
-
 
             if (user == null)
             {
                 return ServiceResult<LoginResponse>.Unauthorized("Invalid email or password.");
-            }
-
-            if (!user.IsActive)
-            {
-                return ServiceResult<LoginResponse>.Forbidden("This account is inactive.");
             }
 
             bool isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
@@ -93,6 +86,10 @@ namespace SupportTicketAPI.Services
                 return ServiceResult<LoginResponse>.Unauthorized("Invalid email or password.");
             }
 
+            if (!user.IsActive)
+            {
+                return ServiceResult<LoginResponse>.Forbidden("This account is inactive.");
+            }
 
             DateTime accessTokenExpiresAt = _tokenService.GetAccessTokenExpiration();
             string accessToken = _tokenService.GenerateAccessToken(user, accessTokenExpiresAt);
