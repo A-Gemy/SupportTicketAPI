@@ -92,13 +92,15 @@ namespace SupportTicketAPI.DataAccess
             return null;
         }
 
-        public async Task<ServiceResult<int>> CreateAgentAsync(string fullName, string email, string passwordHash)
+        public async Task<ServiceResult<int>> CreateAgentAsync(int adminId, string fullName, string email, string passwordHash)
         {
             using SqlConnection connection = new(_connectionString);
 
             using SqlCommand command = new("usp_CreateAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
+            command.Parameters.Add("@AdminId", SqlDbType.Int)
+                .Value = adminId;
 
             command.Parameters.Add("@FullName", SqlDbType.NVarChar, 100)
                 .Value = fullName;
@@ -121,12 +123,17 @@ namespace SupportTicketAPI.DataAccess
 
                 if (!isSuccess)
                 {
-                    if (message == "Email already exists.")
+                    return message switch
                     {
-                        return ServiceResult<int>.Conflict(message);
-                    }
+                        "Admin not found or inactive." =>
+                            ServiceResult<int>.Forbidden(message),
 
-                    return ServiceResult<int>.Failure(message);
+                        "Email already exists." =>
+                            ServiceResult<int>.Conflict(message),
+
+                        _ =>
+                            ServiceResult<int>.Failure(message)
+                    };
                 }
 
                 int userId = reader.GetInt32(reader.GetOrdinal("UserId"));

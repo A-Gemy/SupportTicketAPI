@@ -127,8 +127,13 @@ namespace SupportTicketAPI.Services
             return ServiceResult<LoginResponse>.Success(loginResponse, "Login succeeded.");
         }
 
-        public async Task<ServiceResult<int>> CreateAgentAsync(CreateAgentRequest request)
+        public async Task<ServiceResult<int>> CreateAgentAsync(int adminId, CreateAgentRequest request)
         {
+            if (adminId <= 0)
+            {
+                return ServiceResult<int>.Unauthorized("Invalid admin id.");
+            }
+
             if (request == null)
             {
                 return ServiceResult<int>.ValidationFailure("Invalid request.");
@@ -152,6 +157,7 @@ namespace SupportTicketAPI.Services
             string passwordHash = _passwordHasher.HashPassword(request.Password);
 
             return await _userDataAccess.CreateAgentAsync(
+                adminId,
                 request.FullName.Trim(),
                 request.Email.Trim(),
                 passwordHash

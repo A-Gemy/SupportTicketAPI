@@ -9,7 +9,7 @@ namespace SupportTicketAPI.Services.Interfaces
 
         Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequest request);
 
-        Task<ServiceResult<int>> CreateAgentAsync(CreateAgentRequest request);
+        Task<ServiceResult<int>> CreateAgentAsync(int adminId, CreateAgentRequest request);
 
         Task<ServiceResult<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest request);
 

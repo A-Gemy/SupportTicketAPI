@@ -123,7 +123,16 @@ namespace SupportTicketAPI.Controllers
             typeof(ApiResponse<UserCreatedResponse>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateAgent(CreateAgentRequest request)
         {
-            var result = await _authService.CreateAgentAsync(request);
+            string? adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(adminIdClaim, out int adminId))
+            {
+                return this.ToErrorResponse<UserCreatedResponse>(
+                    ResultType.Unauthorized,
+                    "Invalid user token.");
+            }
+
+            var result = await _authService.CreateAgentAsync(adminId, request);
 
             if (!result.IsSuccess)
             {
