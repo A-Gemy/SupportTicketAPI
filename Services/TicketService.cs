@@ -131,14 +131,19 @@ namespace SupportTicketAPI.Services
                 userId, ticketId, commentText);
         }
 
-        public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
+        public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int userId, int ticketId)
         {
+            if (userId <= 0)
+            {
+                return ServiceResult<List<TicketComment>>.Unauthorized("Invalid user id.");
+            }
+
             if (ticketId <= 0)
             {
                 return ServiceResult<List<TicketComment>>.ValidationFailure("Invalid ticket id.");
             }
 
-            return await _ticketDataAccess.GetTicketCommentsAsync(ticketId);
+            return await _ticketDataAccess.GetTicketCommentsAsync(userId, ticketId);
         }
 
         public async Task<ServiceResult<PagedResult<Ticket>>> AdminGetAllTicketsAsync(int adminId, int pageNumber = 1, int pageSize = 10)

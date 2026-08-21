@@ -274,7 +274,7 @@ namespace SupportTicketAPI.Controllers
             typeof(ApiResponse<List<TicketComment>>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetComments(int ticketId)
         {
-            if (!TryGetCurrentUserId(out _))
+            if (!TryGetCurrentUserId(out int currentUserId))
             {
                 return this.ToErrorResponse<List<TicketComment>>(
                     ResultType.Unauthorized,
@@ -302,7 +302,7 @@ namespace SupportTicketAPI.Controllers
                     "You do not have permission to view comments for this ticket.");
             }
 
-            var result = await _ticketService.GetTicketCommentsAsync(ticketId);
+            var result = await _ticketService.GetTicketCommentsAsync(currentUserId, ticketId);
 
             if (!result.IsSuccess)
             {

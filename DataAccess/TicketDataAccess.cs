@@ -340,7 +340,7 @@ namespace SupportTicketAPI.DataAccess
             return ServiceResult<int>.Success(commentId, message);
         }
 
-        public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int ticketId)
+        public async Task<ServiceResult<List<TicketComment>>> GetTicketCommentsAsync(int userId, int ticketId)
         {
             List<TicketComment> comments = new();
 
@@ -348,6 +348,9 @@ namespace SupportTicketAPI.DataAccess
 
             using SqlCommand command = new("usp_GetTicketComments", connection);
             command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@UserId", SqlDbType.Int)
+                .Value = userId;
 
             command.Parameters.Add("@TicketId", SqlDbType.Int)
                 .Value = ticketId;
@@ -366,12 +369,20 @@ namespace SupportTicketAPI.DataAccess
 
             if (!isSuccess)
             {
-                if (message == "Ticket not found.")
+                return message switch
                 {
-                    return ServiceResult<List<TicketComment>>.NotFound(message);
-                }
+                    "User not found or inactive." =>
+                        ServiceResult<List<TicketComment>>.Forbidden(message),
 
-                return ServiceResult<List<TicketComment>>.Failure(message);
+                    "Ticket not found." =>
+                        ServiceResult<List<TicketComment>>.NotFound(message),
+
+                    "You do not have permission to view comments for this ticket." =>
+                        ServiceResult<List<TicketComment>>.Forbidden(message),
+
+                    _ =>
+                        ServiceResult<List<TicketComment>>.Failure(message)
+                };
             }
 
             if (await reader.NextResultAsync())
