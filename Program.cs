@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using SupportTicketAPI.Authorization.Handlers;
 using SupportTicketAPI.Authorization.Requirements;
 using SupportTicketAPI.Constants;
 using SupportTicketAPI.DataAccess;
 using SupportTicketAPI.DataAccess.Interfaces;
 using SupportTicketAPI.DTOs.Common;
+using SupportTicketAPI.ExceptionHandling;
 using SupportTicketAPI.Security;
 using SupportTicketAPI.Services;
 using SupportTicketAPI.Services.Interfaces;
 using System.Text;
 using System.Threading.RateLimiting;
+
 
 namespace SupportTicketAPI
 {
@@ -22,6 +25,28 @@ namespace SupportTicketAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            string errorLogPath = Path.Combine(
+                builder.Environment.ContentRootPath,
+                "Logs",
+                "support-ticket-api-errors.log");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Error()
+                .Enrich.FromLogContext()
+                .WriteTo.File(
+                    path: errorLogPath,
+                    rollingInterval: RollingInterval.Infinite,
+                    fileSizeLimitBytes: null,
+                    rollOnFileSizeLimit: false,
+                    shared: true,
+                    outputTemplate:
+                        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] " +
+                        "{Message:lj} {Properties:j}{NewLine}" +
+                        "{Exception}{NewLine}")
+                .CreateLogger();
+
+            builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
             var jwtKey = builder.Configuration["Jwt:Key"];
             var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -206,7 +231,12 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<IAuthorizationHandler, TicketCommentsAccessHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, TicketCommentWriteHandler>();
 
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
