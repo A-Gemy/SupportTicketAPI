@@ -1,33 +1,40 @@
 ﻿# Support Ticket Management API
 
-A secure RESTful API for managing customer support tickets, built with ASP.NET Core Web API, ADO.NET, SQL Server, and Stored Procedures.
+A RESTful API for managing customer support tickets, built with ASP.NET Core Web API, ADO.NET, SQL Server, and stored procedures.
 
-## Overview
+The project implements a complete ticket lifecycle for Customers, Agents, and Admins, with authentication, authorization, comments, pagination, audit logging, concurrency-safe database operations, and standardized API responses.
 
-The project provides a complete support-ticket workflow for three roles:
+## Project Highlights
 
-* Customer
-* Agent
-* Admin
+- Layered Controller, Service, Data Access, and Stored Procedure architecture.
+- JWT authentication with rotating refresh tokens.
+- Role-based and resource-based authorization.
+- Complete Customer, Agent, and Admin ticket workflows.
+- Standard response contract across the API.
+- Server-side pagination for ticket lists and audit logs.
+- Transactional audit logging for important ticket operations.
+- Concurrency-safe and idempotent status and assignment operations.
+- Global exception handling with server-side error logging.
+- Basic rate limiting on public authentication endpoints.
 
-It includes JWT authentication, refresh token rotation, role-based authorization, resource-based authorization, ticket comments, status management, and audit logging.
+## Technology Stack
 
-## Technologies
-
-* .NET 8
-* ASP.NET Core Web API
-* SQL Server
-* ADO.NET
-* Stored Procedures
-* JWT Authentication
-* Refresh Tokens
-* BCrypt Password Hashing
-* Swagger / OpenAPI
-* Git and GitHub
+- .NET 8
+- ASP.NET Core Web API
+- SQL Server
+- ADO.NET
+- Stored Procedures
+- JWT Bearer Authentication
+- BCrypt password hashing
+- Serilog
+- Swagger / OpenAPI
+- Git and GitHub
 
 ## Architecture
 
 ```text
+HTTP Request
+    ↓
 Controller
    ↓
 Service
@@ -39,7 +46,12 @@ Stored Procedure
 SQL Server
 ```
 
-The project follows a layered architecture that separates API handling, business logic, database access, and SQL operations.
+The layers have separate responsibilities:
+
+- **Controllers** handle HTTP concerns, authentication claims, and response creation.
+- **Services** validate input and coordinate business operations.
+- **Data Access** executes stored procedures and maps their results.
+- **Stored Procedures** enforce important data, workflow, transaction, and concurrency rules.
 
 ## Roles and Features
 
@@ -47,80 +59,143 @@ The project follows a layered architecture that separates API handling, business
 
 Customers can:
 
-* Register and log in
-* Create support tickets
-* View their own tickets
-* View their ticket details
-* Read and add comments
-* Close their own tickets
+- Register and log in.
+- Create support tickets.
+- View their own paginated ticket list.
+- View their own ticket details.
+- Read and add comments on their own tickets.
+- Close their own tickets.
 
 ### Agent
 
 Agents can:
 
-* Log in
-* View tickets assigned to them
-* View assigned ticket details
-* Read and add comments
-* Update ticket status using:
+- Log in.
+- View tickets assigned to them.
+- View assigned ticket details.
+- Read and add comments on assigned tickets.
+- Move assigned tickets through the Agent workflow.
 
 ```text
 Assigned → InProgress → Resolved
 ```
 
-Agents cannot access or update tickets assigned to other Agents.
+Agents cannot access or update tickets assigned to another Agent.
 
 ### Admin
 
 Admins can:
 
-* Create Agent accounts
-* View all tickets
-* View ticket details
-* View unassigned tickets
-* Assign and reassign tickets
-* Update ticket status
-* View tickets assigned to a specific Agent
-* Read and add comments
-* View audit logs with optional filters
+- Create Agent accounts.
+- View all tickets.
+- View ticket details.
+- View unassigned tickets.
+- Assign or reassign tickets.
+- Update ticket status.
+- View tickets assigned to a specific Agent.
+- Read and add comments.
+- View and filter audit logs.
 
 ## Ticket Workflow
 
+The normal ticket lifecycle is:
+
 ```text
-Open
-  ↓
-Assigned
-  ↓
-InProgress
-  ↓
-Resolved
-  ↓
-Closed
+Open → Assigned → InProgress → Resolved → Closed
 ```
 
-Authorization rules ensure that:
+Important workflow rules:
 
-* Customers access only their own tickets.
-* Agents access only tickets assigned to them.
-* Closed tickets cannot receive new comments.
-* Agents cannot close tickets.
-* Admins manage ticket assignment and final status changes.
+- A newly created ticket starts as `Open`.
+- Assigning an open ticket moves it to `Assigned`.
+- An Agent can move `Assigned` to `InProgress`.
+- An Agent can move `InProgress` to `Resolved`.
+- Agents cannot close tickets.
+- Closed tickets cannot be assigned, updated, or commented on.
+- An assigned ticket cannot be moved back to `Open` by an Admin.
+- An unassigned ticket cannot be moved to `InProgress` or `Resolved`.
+- Repeating the same Agent or Admin status update succeeds without changing `UpdatedAt` or creating another audit entry.
+- Assigning a ticket again to the same Agent succeeds without another update or duplicate audit entry.
 
-## Authentication
+## Standard API Response
 
-The API uses JWT access tokens and refresh tokens.
+API endpoints return a shared response contract:
+
+```json
+{
+  "isSuccess": true,
+  "message": "Tickets retrieved successfully.",
+  "data": {},
+  "errors": null
+}
+```
+
+An error response follows the same shape:
+
+```json
+{
+  "isSuccess": false,
+  "message": "Validation failed.",
+  "data": null,
+  "errors": {
+    "email": [
+      "Invalid email format."
+    ]
+  }
+}
+```
+
+Service results are mapped consistently to HTTP status codes such as:
+
+- `400 Bad Request`
+- `401 Unauthorized`
+- `403 Forbidden`
+- `404 Not Found`
+- `409 Conflict`
+- `429 Too Many Requests`
+- `500 Internal Server Error`
+
+## Pagination
+
+Ticket list endpoints and the audit log endpoint support:
+
+```text
+pageNumber=1
+pageSize=10
+```
+
+Rules:
+
+- `pageNumber` must be at least `1`.
+- `pageSize` must be between `1` and `100`.
+- Pagination offset calculations use `BIGINT` in SQL to prevent integer overflow.
+
+Paged responses contain:
+
+```json
+{
+  "items": [],
+  "pageNumber": 1,
+  "pageSize": 10,
+  "totalCount": 0,
+  "totalPages": 0
+}
+```
+
+## Authentication and Security
 
 Implemented authentication features:
 
-* Customer registration
-* User login
-* JWT access token generation
-* Refresh token rotation
-* Refresh token revocation
-* Logout
-* Hashed refresh token storage
-* BCrypt password hashing
-* Admin-created Agent accounts
+- Customer registration.
+- Login with JWT access tokens.
+- Hashed refresh token storage.
+- Atomic refresh token rotation.
+- Refresh token revocation and logout.
+- BCrypt password hashing.
+- JWT signing key stored outside source control.
+- Active-user validation for protected database operations.
+- Duplicate email conflicts handled safely, including concurrent registration attempts.
+- Failed login, successful login, and logout audit events.
 
 JWT claims include:
 
@@ -129,151 +204,203 @@ JWT claims include:
 * Email
 * Role
 
+Public registration, login, and refresh-token endpoints currently share a fixed-window rate limit of five requests per minute for each client IP address.
+
 ## Authorization
 
-The API uses both:
-
-* Role-Based Authorization
-* Resource-Based Authorization
+The API uses both role-based and resource-based authorization.
 
 Examples:
 
-* Admin endpoints require the `Admin` role.
-* Customers can access and comment only on owned tickets.
-* Agents can access and comment only on assigned tickets.
-* Unauthorized resource access returns `403 Forbidden`.
-* Missing or invalid authentication returns `401 Unauthorized`.
+- Admin endpoints require the `Admin` role.
+- Customer ticket endpoints require the `Customer` role.
+- Agent ticket endpoints require the `Agent` role.
+- Customers can access comments only for their own tickets.
+- Agents can access comments only for tickets assigned to them.
+- Comment read authorization is also validated atomically inside the database operation.
+- Missing or invalid authentication returns `401 Unauthorized`.
+- Authenticated users without access return `403 Forbidden`.
+
+## Concurrency and Data Integrity
+
+Important database operations use transactions and locking where necessary.
+
+Implemented safeguards include:
+
+- Concurrency-safe Agent ticket status updates.
+- Concurrency-safe Admin ticket status updates.
+- Concurrency-safe ticket assignment and reassignment.
+- Idempotent repeated status updates.
+- Idempotent repeated assignment to the same Agent.
+- Idempotent refresh token revocation.
+- Atomic refresh token rotation.
+- Atomic ticket-comment read authorization.
+- Duplicate email race handling.
+- Business changes and their audit records committed in the same transaction.
 
 ## Audit Logging
 
-The system records important ticket events:
+The system records ticket and authentication events, including:
 
-* `TicketCreated`
-* `TicketAssigned`
-* `TicketStatusChanged`
-* `TicketCommentAdded`
+- `TicketCreated`
+- `TicketAssigned`
+- `TicketStatusChanged`
+- `TicketCommentAdded`
+- `FailedLogin`
+- `UserLoggedIn`
+- `UserLoggedOut`
 
-Audit records include:
+Audit records can include:
 
-* Actor user ID
-* Actor name
-* Actor role
-* Action
-* Entity name
-* Entity ID
-* Details
-* Creation time
+- Actor user ID
+- Actor name
+- Actor role
+- Action
+- Entity name
+- Entity ID
+- Details
+- Client IP address
+- Creation time
 
-Admins can retrieve audit logs using:
+Admins can filter audit logs using:
 
-```http
-GET /api/admin/audit-logs
-```
-
-Optional filters include:
-
-```text
-action
-actorUserId
-entityName
-entityId
-fromDate
-toDate
-```
+- `action`
+- `actorUserId`
+- `entityName`
+- `entityId`
+- `fromDate`
+- `toDate`
+- `pageNumber`
+- `pageSize`
 
 Example:
 
 ```http
-GET /api/admin/audit-logs?action=TicketStatusChanged&actorUserId=1005
+GET /api/admin/audit-logs?action=TicketStatusChanged&pageNumber=1&pageSize=10
 ```
 
-## Main API Endpoints
+## Global Error Handling
+
+Unhandled exceptions are processed by a global exception handler.
+
+The client receives a safe response:
+
+```json
+{
+  "isSuccess": false,
+  "message": "An unexpected error occurred.",
+  "data": null,
+  "errors": null
+}
+```
+
+The response includes an `X-Trace-Id` header that can be matched with the server log entry.
+
+Server-side exception details are appended to:
+
+```text
+Logs/support-ticket-api-errors.log
+```
+
+Runtime `.log` files are excluded from Git.
+
+## API Endpoints
 
 ### Authentication
 
-```http
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/refresh-token
-POST /api/auth/logout
-GET  /api/auth/me
-POST /api/auth/agents
-```
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Register a Customer |
+| `POST` | `/api/auth/login` | Public | Log in and receive access and refresh tokens |
+| `POST` | `/api/auth/refresh-token` | Public | Rotate a valid refresh token |
+| `POST` | `/api/auth/logout` | Refresh token | Revoke a refresh token |
+| `GET` | `/api/auth/me` | Authenticated | Return the current JWT user |
+| `POST` | `/api/auth/agents` | Admin | Create an Agent account |
 
 ### Customer Tickets
 
-```http
-POST  /api/tickets
-GET   /api/tickets/my
-GET   /api/tickets/{ticketId}
-PATCH /api/tickets/{ticketId}/close
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/tickets` | Create a ticket |
+| `GET` | `/api/tickets/my?pageNumber=1&pageSize=10` | View the current Customer's tickets |
+| `GET` | `/api/tickets/{ticketId}` | View an owned ticket |
+| `PATCH` | `/api/tickets/{ticketId}/close` | Close an owned ticket |
 
 ### Shared Comments
 
-```http
-GET  /api/tickets/{ticketId}/comments
-POST /api/tickets/{ticketId}/comments
-```
+| Method | Endpoint | Access rule |
+|---|---|---|
+| `GET` | `/api/tickets/{ticketId}/comments` | Admin, owning Customer, or assigned Agent |
+| `POST` | `/api/tickets/{ticketId}/comments` | Admin, owning Customer, or assigned Agent |
 
 ### Agent Tickets
 
-```http
-GET   /api/tickets/assigned-to-me
-GET   /api/tickets/assigned-to-me/{ticketId}
-PATCH /api/tickets/assigned-to-me/{ticketId}/status
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/tickets/assigned-to-me?pageNumber=1&pageSize=10` | View assigned tickets |
+| `GET` | `/api/tickets/assigned-to-me/{ticketId}` | View assigned ticket details |
+| `PATCH` | `/api/tickets/assigned-to-me/{ticketId}/status` | Update an assigned ticket's status |
 
 ### Admin Tickets
 
-```http
-GET   /api/tickets
-GET   /api/tickets/admin/{ticketId}
-GET   /api/tickets/unassigned
-PATCH /api/tickets/{ticketId}/assign
-PATCH /api/tickets/{ticketId}/status
-GET   /api/tickets/assigned-to-agent/{agentId}
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/tickets?pageNumber=1&pageSize=10` | View all tickets |
+| `GET` | `/api/tickets/admin/{ticketId}` | View ticket details |
+| `GET` | `/api/tickets/unassigned?pageNumber=1&pageSize=10` | View unassigned tickets |
+| `PATCH` | `/api/tickets/{ticketId}/assign` | Assign or reassign a ticket |
+| `PATCH` | `/api/tickets/{ticketId}/status` | Update ticket status |
+| `GET` | `/api/tickets/assigned-to-agent/{agentId}?pageNumber=1&pageSize=10` | View tickets assigned to an Agent |
 
 ### Audit Logs
 
-```http
-GET /api/admin/audit-logs
-```
+| Method | Endpoint | Access |
+|---|---|---|
+| `GET` | `/api/admin/audit-logs` | Admin |
 
 ## Database
 
 The main database tables are:
 
-* `Users`
-* `Tickets`
-* `TicketComments`
-* `RefreshTokens`
-* `AuditLogs`
+- `Users`
+- `RefreshTokens`
+- `Tickets`
+- `TicketComments`
+- `AuditLogs`
 
-Database operations are implemented using Stored Procedures.
+Database operations are implemented through stored procedures located in `SQL/Migrations`.
 
-Transactions are used when an operation must update business data and create an audit record together.
+Migrations must be executed in numerical order because later scripts update procedures created by earlier scripts.
 
 ## Project Structure
 
 ```text
+Authorization/
+Common/
+Constants/
 Controllers/
-Services/
-    Interfaces/
 DataAccess/
     Interfaces/
-Models/
 DTOs/
+ExceptionHandling/
+Extensions/
+Models/
 Security/
-Authorization/
-Constants/
+Services/
+    Interfaces/
 SQL/
     Migrations/
 docs/
 ```
 
 ## Local Setup
+
+### Prerequisites
+
+- .NET 8 SDK
+- SQL Server
+- SQL Server Management Studio or another SQL client
+- Git
 
 ### 1. Clone the Repository
 
@@ -284,7 +411,7 @@ cd SupportTicketAPI
 
 ### 2. Configure the Database Connection
 
-The local SQL Server connection string is configured in `appsettings.json`:
+The default connection string uses Windows Authentication:
 
 ```json
 "ConnectionStrings": {
@@ -292,33 +419,21 @@ The local SQL Server connection string is configured in `appsettings.json`:
 }
 ```
 
-Update the server name if your local SQL Server instance uses a different name.
-
-For example:
+Update `Server=.` if your SQL Server instance uses another name, such as:
 
 ```text
 Server=.\SQLEXPRESS;
 ```
 
-The current connection string uses Windows Authentication and does not contain a database username or password.
-
 ### 3. Configure the JWT Signing Key
 
-Initialize .NET User Secrets:
-
-```bash
-dotnet user-secrets init
-```
-
-Add a secure JWT signing key:
+Set the JWT key using .NET User Secrets:
 
 ```bash
 dotnet user-secrets set "Jwt:Key" "YOUR_SECURE_JWT_KEY"
 ```
 
-The JWT signing key must not be stored in `appsettings.json` or committed to source control.
-
-A secure key can be generated using PowerShell:
+PowerShell example for generating a random key:
 
 ```powershell
 $bytes = New-Object byte[] 64
@@ -332,17 +447,28 @@ dotnet user-secrets set "Jwt:Key" "$jwtKey"
 
 ### 4. Create the Database
 
-Run the SQL scripts inside:
+Run every script in `SQL/Migrations` in numerical order, starting with:
 
 ```text
-SQL/Migrations
+01_CreateInitialSchema.sql
 ```
 
-in numerical order.
+and ending with:
 
-After creating the database, run the initial Admin seed script.
+```text
+63_PreventPaginationOffsetOverflow.sql
+```
 
-### 5. Restore and Run the Project
+The seed script creates this demo Admin account:
+
+```text
+Email:    admin@support.com
+Password: admin123
+```
+
+These credentials are intended only for local demonstration and learning. Do not reuse them in a production environment.
+
+### 5. Restore and Run
 
 ```bash
 dotnet restore
@@ -350,52 +476,18 @@ dotnet build
 dotnet run
 ```
 
-Open Swagger using the URL displayed in the terminal.
+Open the Swagger URL displayed in the terminal. Swagger is enabled in the Development environment.
 
-## API Testing
+### 6. Authenticate in Swagger
 
-Swagger can be used to:
-
-* Register a Customer
-* Log in using each role
-* Add the JWT access token using the `Authorize` button
-* Test Customer, Agent, and Admin endpoints
-* Test refresh token rotation and logout
-* Test audit log filters
-* Verify `401 Unauthorized` and `403 Forbidden` responses
-
-## Security Features
-
-* Passwords are hashed using BCrypt.
-* Passwords are never stored as plain text.
-* Refresh tokens are stored as hashes.
-* Refresh tokens are revoked after use.
-* Refresh tokens are rotated when refreshed.
-* JWT signing keys are stored outside source control.
-* SQL Parameters use explicit database types and sizes.
-* Stored Procedures validate important user and role rules.
-* Authorization is enforced at both role and resource levels.
-* Important ticket changes are recorded in audit logs.
+1. Call `POST /api/auth/login`.
+2. Copy the returned access token.
+3. Select **Authorize** in Swagger.
+4. Enter the token value.
+5. Test endpoints allowed for the authenticated role.
 
 ## Project Status
 
-The MVP is complete.
+The MVP and the planned post-MVP reliability and response-standardization work are complete.
 
-Implemented modules:
-
-* Authentication
-* Customer ticket workflow
-* Agent ticket workflow
-* Admin ticket management
-* Shared ticket comments
-* Role-based authorization
-* Resource-based authorization
-* Refresh token rotation
-* Audit logging
-* Audit log filters
-
-Future improvements are documented in:
-
-```text
-docs/Requirements.md
-```
+The repository currently uses manual Swagger and SSMS testing. Additional ideas for future development are documented in [docs/Requirements.md](docs/Requirements.md).
