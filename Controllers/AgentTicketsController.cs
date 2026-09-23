@@ -16,11 +16,12 @@ namespace SupportTicketAPI.Controllers
     [Authorize(Roles = UserRoles.Agent)]
     public class AgentTicketsController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly IAgentTicketService _agentTicketService;
 
-        public AgentTicketsController(ITicketService ticketService)
+        public AgentTicketsController(
+            IAgentTicketService agentTicketService)
         {
-            _ticketService = ticketService;
+            _agentTicketService = agentTicketService;
         }
 
         private bool TryGetCurrentUserId(out int userId)
@@ -55,7 +56,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AgentGetAssignedTicketsAsync(
+                await _agentTicketService.AgentGetAssignedTicketsAsync(
                     agentId,
                     pageNumber,
                     pageSize);
@@ -101,7 +102,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AgentGetAssignedTicketDetailsAsync(
+                await _agentTicketService.AgentGetAssignedTicketDetailsAsync(
                     agentId,
                     ticketId);
 
@@ -154,7 +155,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AgentUpdateAssignedTicketStatusAsync(
+                await _agentTicketService.AgentUpdateAssignedTicketStatusAsync(
                     agentId,
                     ticketId,
                     request);

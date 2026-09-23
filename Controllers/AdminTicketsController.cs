@@ -16,11 +16,12 @@ namespace SupportTicketAPI.Controllers
     [Authorize(Roles = UserRoles.Admin)]
     public class AdminTicketsController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly IAdminTicketService _adminTicketService;
 
-        public AdminTicketsController(ITicketService ticketService)
+        public AdminTicketsController(
+            IAdminTicketService adminTicketService)
         {
-            _ticketService = ticketService;
+            _adminTicketService = adminTicketService;
         }
 
         private bool TryGetCurrentUserId(out int userId)
@@ -55,7 +56,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AdminGetAllTicketsAsync(
+                await _adminTicketService.AdminGetAllTicketsAsync(
                     adminId,
                     pageNumber,
                     pageSize);
@@ -101,7 +102,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AdminGetTicketDetailsAsync(
+                await _adminTicketService.AdminGetTicketDetailsAsync(
                     adminId,
                     ticketId);
 
@@ -142,7 +143,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AdminGetUnassignedTicketsAsync(
+                await _adminTicketService.AdminGetUnassignedTicketsAsync(
                     adminId,
                     pageNumber,
                     pageSize);
@@ -196,7 +197,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AssignTicketToAgentAsync(
+                await _adminTicketService.AssignTicketToAgentAsync(
                     adminId,
                     ticketId,
                     request);
@@ -250,7 +251,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AdminUpdateTicketStatusAsync(
+                await _adminTicketService.AdminUpdateTicketStatusAsync(
                     adminId,
                     ticketId,
                     request);
@@ -295,7 +296,7 @@ namespace SupportTicketAPI.Controllers
                     "Invalid user token.");
             }
 
-            var result = await _ticketService.AdminGetTicketsByAgentAsync(
+            var result = await _adminTicketService.AdminGetTicketsByAgentAsync(
                 adminId,
                 agentId,
                 pageNumber,

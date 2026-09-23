@@ -6,6 +6,7 @@ using SupportTicketAPI.DTOs.Common;
 using SupportTicketAPI.DTOs.Tickets;
 using SupportTicketAPI.Extensions;
 using SupportTicketAPI.Models;
+using SupportTicketAPI.Services;
 using SupportTicketAPI.Services.Interfaces;
 using System.Security.Claims;
 
@@ -16,12 +17,14 @@ namespace SupportTicketAPI.Controllers
     [Authorize]
     public class TicketCommentsController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly ITicketCommentService _ticketCommentService;
         private readonly IAuthorizationService _authorizationService;
 
-        public TicketCommentsController(ITicketService ticketService, IAuthorizationService authorizationService)
+        public TicketCommentsController(
+            ITicketCommentService ticketCommentService,
+            IAuthorizationService authorizationService)
         {
-            _ticketService = ticketService;
+            _ticketCommentService = ticketCommentService;
             _authorizationService = authorizationService;
         }
 
@@ -61,7 +64,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var accessResult =
-                await _ticketService.GetTicketAccessInfoAsync(
+                await _ticketCommentService.GetTicketAccessInfoAsync(
                     ticketId);
 
             if (!accessResult.IsSuccess)
@@ -85,7 +88,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.GetTicketCommentsAsync(
+                await _ticketCommentService.GetTicketCommentsAsync(
                     currentUserId,
                     ticketId);
 
@@ -133,7 +136,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var accessResult =
-                await _ticketService.GetTicketAccessInfoAsync(
+                await _ticketCommentService.GetTicketAccessInfoAsync(
                     ticketId);
 
             if (!accessResult.IsSuccess)
@@ -157,7 +160,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.AddTicketCommentAsync(
+                await _ticketCommentService.AddTicketCommentAsync(
                     currentUserId,
                     ticketId,
                     request);

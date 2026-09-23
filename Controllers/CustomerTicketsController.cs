@@ -16,11 +16,12 @@ namespace SupportTicketAPI.Controllers
     [Authorize(Roles = UserRoles.Customer)]
     public class CustomerTicketsController : ControllerBase
     {
-        private readonly ITicketService _ticketService;
+        private readonly ICustomerTicketService _customerTicketService;
 
-        public CustomerTicketsController(ITicketService ticketService)
+        public CustomerTicketsController(
+            ICustomerTicketService customerTicketService)
         {
-            _ticketService = ticketService;
+            _customerTicketService = customerTicketService;
         }
 
         private bool TryGetCurrentUserId(out int userId)
@@ -60,7 +61,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.CreateTicketAsync(
+                await _customerTicketService.CreateTicketAsync(
                     customerId,
                     request);
 
@@ -111,7 +112,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.GetCustomerTicketsAsync(
+                await _customerTicketService.GetCustomerTicketsAsync(
                     customerId,
                     pageNumber,
                     pageSize);
@@ -157,7 +158,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.GetCustomerTicketDetailsAsync(
+                await _customerTicketService.GetCustomerTicketDetailsAsync(
                     customerId,
                     ticketId);
 
@@ -209,7 +210,7 @@ namespace SupportTicketAPI.Controllers
             }
 
             var result =
-                await _ticketService.CloseCustomerTicketAsync(
+                await _customerTicketService.CloseCustomerTicketAsync(
                     customerId,
                     ticketId);
 

@@ -226,7 +226,11 @@ namespace SupportTicketAPI
             builder.Services.AddScoped<IAgentTicketDataAccess, AgentTicketDataAccess>();
             builder.Services.AddScoped<IAdminTicketDataAccess, AdminTicketDataAccess>();
             builder.Services.AddScoped<ITicketCommentDataAccess, TicketCommentDataAccess>();
-            builder.Services.AddScoped<ITicketService, TicketService>();
+
+            builder.Services.AddScoped<ICustomerTicketService, CustomerTicketService>();
+            builder.Services.AddScoped<IAgentTicketService, AgentTicketService>();
+            builder.Services.AddScoped<IAdminTicketService, AdminTicketService>();
+            builder.Services.AddScoped<ITicketCommentService, TicketCommentService>();
 
             builder.Services.AddScoped<IAuditLogDataAccess, AuditLogDataAccess>();
             builder.Services.AddScoped<IAuditLogService, AuditLogService>();
