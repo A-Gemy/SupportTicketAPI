@@ -368,9 +368,9 @@ The main database tables are:
 - `TicketComments`
 - `AuditLogs`
 
-Database operations are implemented through stored procedures located in `SQL/Migrations`.
+Database operations are implemented through canonical stored-procedure files located in `SQL/StoredProcedures`.
 
-Migrations must be executed in numerical order because later scripts update procedures created by earlier scripts.
+`SQL/Migrations` is reserved for ordered database-structure and one-time data changes. See [SQL/README.md](SQL/README.md) for the database script workflow.
 
 ## Project Structure
 
@@ -390,6 +390,7 @@ Services/
     Interfaces/
 SQL/
     Migrations/
+    StoredProcedures/
 docs/
 ```
 
@@ -447,17 +448,20 @@ dotnet user-secrets set "Jwt:Key" "$jwtKey"
 
 ### 4. Create the Database
 
-Run every script in `SQL/Migrations` in numerical order, starting with:
+Run the database migrations in numerical order:
 
 ```text
 01_CreateInitialSchema.sql
+02_SeedInitialAdmin.sql
 ```
 
-and ending with:
+Then run every `.sql` file under:
 
 ```text
-63_PreventPaginationOffsetOverflow.sql
+SQL/StoredProcedures
 ```
+
+Each stored-procedure file uses `CREATE OR ALTER PROCEDURE`, so the canonical definitions can also be rerun safely against an existing database.
 
 The seed script creates this demo Admin account:
 
@@ -488,6 +492,6 @@ Open the Swagger URL displayed in the terminal. Swagger is enabled in the Develo
 
 ## Project Status
 
-The MVP and the planned post-MVP reliability and response-standardization work are complete.
+The MVP and the planned post-MVP reliability, response-standardization, and SQL-organization work are complete.
 
 The repository currently uses manual Swagger and SSMS testing. Additional ideas for future development are documented in [docs/Requirements.md](docs/Requirements.md).

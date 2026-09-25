@@ -212,7 +212,9 @@ Implemented safeguards:
 
 All application database operations use stored procedures.
 
-SQL scripts are currently maintained as ordered migrations in `SQL/Migrations`.
+Database structure and one-time data changes are maintained as ordered scripts in `SQL/Migrations`.
+
+Each active stored procedure has one canonical `CREATE OR ALTER PROCEDURE` file under `SQL/StoredProcedures`, grouped by responsibility. Future procedure changes update the same canonical file.
 
 ## Current Verification Approach
 
@@ -233,7 +235,6 @@ Automated tests and automated build workflows are not currently part of the proj
 - Production-ready rate limiting for reverse-proxy and multi-instance deployments
 - Production-safe initial Admin provisioning
 - Stable database result codes independent of response messages
-- Consolidated canonical stored-procedure files
 - Query execution-plan review and index tuning using representative data
 - Advanced ticket filtering and search
 - Further ticket-workflow refinements
@@ -245,6 +246,6 @@ Automated tests and automated build workflows are not currently part of the proj
 
 The MVP is complete.
 
-The post-MVP response standardization, pagination, audit improvements, concurrency safeguards, authorization hardening, refresh-token hardening, global exception handling, and pagination-overflow protection are also complete.
+The post-MVP response standardization, pagination, audit improvements, concurrency safeguards, authorization hardening, refresh-token hardening, global exception handling, pagination-overflow protection, and SQL script organization are also complete.
 
 Future features can be added incrementally as the project continues to evolve.
