@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using SupportTicketAPI.Authorization.Handlers;
 using SupportTicketAPI.Authorization.Requirements;
@@ -184,39 +184,40 @@ namespace SupportTicketAPI
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+
             builder.Services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Support Ticket API",
-                    Version = "v1",
-                    Description = "API for managing support tickets and user authentication."
-                });
-
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "Enter your JWT token only. Example: eyJhbGciOiJIUzI1NiIs..."
-                });
-
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
+                options.SwaggerDoc(
+                    "v1",
+                    new OpenApiInfo
                     {
-                        new OpenApiSecurityScheme
+                        Title = "Support Ticket API",
+                        Version = "v1",
+                        Description =
+                            "API for managing support tickets and user authentication."
+                    });
+
+                options.AddSecurityDefinition(
+                    "Bearer",
+                    new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "Bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Description =
+                            "Enter your JWT token only. Example: eyJhbGciOiJIUzI1NiIs..."
+                    });
+
+                options.AddSecurityRequirement(
+                    document =>
+                        new OpenApiSecurityRequirement
                         {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
+                            [new OpenApiSecuritySchemeReference(
+                                "Bearer",
+                                document)] = []
+                        });
             });
 
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -250,7 +251,11 @@ namespace SupportTicketAPI
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
+                app.UseSwagger(options =>
+                {
+                    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+                });
+
                 app.UseSwaggerUI();
             }
 

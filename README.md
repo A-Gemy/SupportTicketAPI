@@ -19,7 +19,7 @@ The project implements a complete ticket lifecycle for Customers, Agents, and Ad
 
 ## Technology Stack
 
-- .NET 8
+- .NET 10
 - ASP.NET Core Web API
 - SQL Server
 - ADO.NET
@@ -398,7 +398,7 @@ docs/
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - SQL Server
 - SQL Server Management Studio or another SQL client
 - Git

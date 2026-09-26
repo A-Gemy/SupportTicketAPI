@@ -8,7 +8,7 @@ The project is designed as a learning and portfolio project that demonstrates au
 
 ## Technology Stack
 
-- .NET 8 and ASP.NET Core Web API
+- .NET 10 and ASP.NET Core Web API
 - SQL Server, ADO.NET, and stored procedures
 - JWT authentication and refresh tokens
 - BCrypt password hashing
