@@ -24,29 +24,31 @@ namespace SupportTicketAPI
     {
         public static void Main(string[] args)
         {
+            ConfigureErrorLogger();
+
+            try
+            {
+                RunApplication(args);
+            }
+            catch (Exception exception)
+            {
+                Log.Fatal(
+                    exception,
+                    "Application terminated unexpectedly.");
+
+                Environment.ExitCode = 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
+
+        private static void RunApplication(string[] args)
+        {
             var builder = WebApplication.CreateBuilder(args);
 
-            string errorLogPath = Path.Combine(
-                builder.Environment.ContentRootPath,
-                "Logs",
-                "support-ticket-api-errors.log");
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Error()
-                .Enrich.FromLogContext()
-                .WriteTo.File(
-                    path: errorLogPath,
-                    rollingInterval: RollingInterval.Infinite,
-                    fileSizeLimitBytes: null,
-                    rollOnFileSizeLimit: false,
-                    shared: true,
-                    outputTemplate:
-                        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] " +
-                        "{Message:lj} {Properties:j}{NewLine}" +
-                        "{Exception}{NewLine}")
-                .CreateLogger();
-
-            builder.Logging.AddSerilog(Log.Logger, dispose: true);
+            builder.Logging.AddSerilog(Log.Logger, dispose: false);
 
             var jwtKey = builder.Configuration["Jwt:Key"];
             var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -266,5 +268,29 @@ namespace SupportTicketAPI
 
             app.Run();
         }
+
+        private static void ConfigureErrorLogger()
+        {
+            string errorLogPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Logs",
+                "support-ticket-api-errors.log");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Error()
+                .Enrich.FromLogContext()
+                .WriteTo.File(
+                    path: errorLogPath,
+                    rollingInterval: RollingInterval.Infinite,
+                    fileSizeLimitBytes: null,
+                    rollOnFileSizeLimit: false,
+                    shared: true,
+                    outputTemplate:
+                        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] " +
+                        "{Message:lj} {Properties:j}{NewLine}" +
+                        "{Exception}{NewLine}")
+            .CreateLogger();
+        }
+
     }
 }

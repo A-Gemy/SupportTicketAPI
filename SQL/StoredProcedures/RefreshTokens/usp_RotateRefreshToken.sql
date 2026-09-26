@@ -178,18 +178,9 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
-        BEGIN
             ROLLBACK TRANSACTION;
-        END
 
-        SELECT
-            CAST(0 AS BIT) AS IsSuccess,
-            'Failed to rotate refresh token.' AS Message,
-            CAST(NULL AS INT) AS UserId,
-            CAST(NULL AS NVARCHAR(100)) AS FullName,
-            CAST(NULL AS NVARCHAR(150)) AS Email,
-            CAST(NULL AS NVARCHAR(20)) AS Role,
-            CAST(NULL AS INT) AS RefreshTokenId;
+        THROW;
     END CATCH
 END
 GO
