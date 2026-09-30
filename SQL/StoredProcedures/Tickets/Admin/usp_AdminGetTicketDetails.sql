@@ -19,7 +19,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Admin not found or inactive.' AS Message;
+            CAST('ADMIN_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -33,14 +33,14 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Ticket not found.' AS Message;
+            CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket details retrieved successfully.' AS Message;
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 
     SELECT
         t.TicketId,

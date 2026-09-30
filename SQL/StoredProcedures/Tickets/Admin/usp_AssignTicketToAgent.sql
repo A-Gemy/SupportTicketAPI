@@ -21,7 +21,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Admin not found or inactive.' AS Message;
+            CAST('ADMIN_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -46,7 +46,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -57,7 +57,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Closed tickets cannot be assigned.' AS Message;
+                CAST('CLOSED_TICKET_CANNOT_BE_ASSIGNED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -75,7 +75,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Agent not found or inactive.' AS Message;
+                CAST('AGENT_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -88,7 +88,7 @@ BEGIN
 
             SELECT
                 CAST(1 AS BIT) AS IsSuccess,
-                'Ticket is already assigned to this agent.' AS Message;
+                CAST('TICKET_ALREADY_ASSIGNED_TO_AGENT' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -129,7 +129,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -166,6 +166,6 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket assigned to agent successfully.' AS Message;
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 END
 GO

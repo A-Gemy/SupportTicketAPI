@@ -16,7 +16,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Action is required.' AS Message,
+            CAST('ACTION_REQUIRED' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS AuditLogId;
 
         RETURN;
@@ -32,7 +32,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'User not found.' AS Message,
+            CAST('USER_NOT_FOUND' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS AuditLogId;
 
         RETURN;
@@ -59,7 +59,7 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Audit log added successfully.' AS Message,
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
         CAST(SCOPE_IDENTITY() AS INT) AS AuditLogId;
 END
 GO

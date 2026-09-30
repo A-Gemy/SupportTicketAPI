@@ -64,5 +64,35 @@
         public const string TicketCloseFailed =
             "TICKET_CLOSE_FAILED";
 
+        public const string ActionRequired =
+            "ACTION_REQUIRED";
+
+        public const string InvalidDateRange =
+            "INVALID_DATE_RANGE";
+
+        public const string AgentNotFoundOrInactive =
+            "AGENT_NOT_FOUND_OR_INACTIVE";
+
+        public const string ClosedTicketCannotBeAssigned =
+            "CLOSED_TICKET_CANNOT_BE_ASSIGNED";
+
+        public const string TicketAlreadyAssignedToAgent =
+            "TICKET_ALREADY_ASSIGNED_TO_AGENT";
+
+        public const string InvalidTicketStatus =
+            "INVALID_TICKET_STATUS";
+
+        public const string ClosedTicketCannotBeUpdated =
+            "CLOSED_TICKET_CANNOT_BE_UPDATED";
+
+        public const string AssignedTicketCannotBeMovedToOpen =
+            "ASSIGNED_TICKET_CANNOT_BE_MOVED_TO_OPEN";
+
+        public const string TicketMustBeAssignedForStatus =
+            "TICKET_MUST_BE_ASSIGNED_FOR_STATUS";
+
+        public const string TicketAlreadyHasRequestedStatus =
+            "TICKET_ALREADY_HAS_REQUESTED_STATUS";
+
     }
 }

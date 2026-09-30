@@ -21,7 +21,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Admin not found or inactive.' AS Message;
+            CAST('ADMIN_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -30,7 +30,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Invalid ticket status.' AS Message;
+            CAST('INVALID_TICKET_STATUS' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -54,7 +54,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -65,7 +65,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Closed tickets cannot be updated.' AS Message;
+                CAST('CLOSED_TICKET_CANNOT_BE_UPDATED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -78,7 +78,7 @@ BEGIN
 
             SELECT
                 CAST(1 AS BIT) AS IsSuccess,
-                'Ticket already has the requested status.' AS Message;
+                CAST('TICKET_ALREADY_HAS_REQUESTED_STATUS' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -91,7 +91,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'An assigned ticket cannot be moved to Open.' AS Message;
+                CAST('ASSIGNED_TICKET_CANNOT_BE_MOVED_TO_OPEN' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -104,7 +104,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'The ticket must be assigned before using this status.' AS Message;
+                CAST('TICKET_MUST_BE_ASSIGNED_FOR_STATUS' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -129,7 +129,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -172,6 +172,6 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket status updated successfully.' AS Message;
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 END
 GO

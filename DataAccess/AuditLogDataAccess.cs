@@ -34,7 +34,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetAuditLogs", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
@@ -72,26 +71,31 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<PagedResult<AuditLog>>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<PagedResult<AuditLog>>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "FromDate cannot be later than ToDate." =>
-                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidDateRange =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(
+                            "FromDate cannot be later than ToDate."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<AuditLog>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
                     _ =>
-                        ServiceResult<PagedResult<AuditLog>>.Failure(message)
+                        ServiceResult<PagedResult<AuditLog>>.Failure(
+                            "Failed to retrieve audit logs.")
                 };
             }
 
@@ -144,7 +148,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<AuditLog>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<AuditLog>>.Success(pagedResult, "Audit logs retrieved successfully.");
         }
 
         public async Task<ServiceResult<int>> AddAuditLogAsync(
@@ -185,18 +189,29 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
-                int auditLogId = reader.IsDBNull(reader.GetOrdinal("AuditLogId"))
-                    ? 0
-                    : reader.GetInt32(reader.GetOrdinal("AuditLogId"));
-
-                if (isSuccess)
+                if (!isSuccess)
                 {
-                    return ServiceResult<int>.Success(auditLogId, message);
+                    return resultCode switch
+                    {
+                        DatabaseResultCodes.ActionRequired =>
+                            ServiceResult<int>.Failure(
+                                "Action is required."),
+
+                        DatabaseResultCodes.UserNotFound =>
+                            ServiceResult<int>.Failure(
+                                "User not found."),
+
+                        _ =>
+                            ServiceResult<int>.Failure(
+                                "Failed to add audit log.")
+                    };
                 }
 
-                return ServiceResult<int>.Failure(message);
+                int auditLogId = reader.GetInt32(reader.GetOrdinal("AuditLogId"));
+
+                return ServiceResult<int>.Success(auditLogId, "Audit log added successfully.");
             }
 
             return ServiceResult<int>.Failure("Failed to add audit log.");

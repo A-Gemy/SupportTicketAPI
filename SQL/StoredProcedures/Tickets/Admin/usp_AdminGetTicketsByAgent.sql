@@ -21,7 +21,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Admin not found or inactive.' AS Message,
+            CAST('ADMIN_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode,
             CAST(0 AS INT) AS TotalCount,
             @PageNumber AS PageNumber,
             @PageSize AS PageSize;
@@ -40,7 +40,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Agent not found or inactive.' AS Message,
+            CAST('AGENT_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode,
             CAST(0 AS INT) AS TotalCount,
             @PageNumber AS PageNumber,
             @PageSize AS PageSize;
@@ -52,7 +52,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Page number must be greater than or equal to 1.' AS Message,
+            CAST('INVALID_PAGE_NUMBER' AS VARCHAR(50)) AS ResultCode,
             CAST(0 AS INT) AS TotalCount,
             @PageNumber AS PageNumber,
             @PageSize AS PageSize;
@@ -64,7 +64,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Page size must be between 1 and 100.' AS Message,
+            CAST('INVALID_PAGE_SIZE' AS VARCHAR(50)) AS ResultCode,
             CAST(0 AS INT) AS TotalCount,
             @PageNumber AS PageNumber,
             @PageSize AS PageSize;
@@ -84,7 +84,7 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Agent tickets retrieved successfully.' AS Message,
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
         @TotalCount AS TotalCount,
         @PageNumber AS PageNumber,
         @PageSize AS PageSize;

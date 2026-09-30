@@ -48,22 +48,27 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
-                    _ => ServiceResult<PagedResult<Ticket>>.Failure(message)
+                    _ =>
+                        ServiceResult<PagedResult<Ticket>>.Failure(
+                            "Failed to retrieve tickets.")
                 };
             }
 
@@ -107,7 +112,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, "Tickets retrieved successfully.");
         }
 
 
@@ -120,13 +125,11 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
             command.Parameters.Add("@TicketId", SqlDbType.Int)
                 .Value = ticketId;
-
 
             await connection.OpenAsync();
 
@@ -138,19 +141,23 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<Ticket>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<Ticket>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<Ticket>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<Ticket>.NotFound(
+                            "Ticket not found."),
 
-                    _ => ServiceResult<Ticket>.Failure(message)
+                    _ =>
+                        ServiceResult<Ticket>.Failure(
+                            "Failed to retrieve ticket details.")
                 };
             }
 
@@ -189,7 +196,7 @@ namespace SupportTicketAPI.DataAccess
                     : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
             };
 
-            return ServiceResult<Ticket>.Success(ticket, message);
+            return ServiceResult<Ticket>.Success(ticket, "Ticket details retrieved successfully.");
         }
 
 
@@ -224,23 +231,27 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
                     _ =>
-                        ServiceResult<PagedResult<Ticket>>.Failure(message)
+                        ServiceResult<PagedResult<Ticket>>.Failure(
+                            "Failed to retrieve unassigned tickets.")
                 };
             }
 
@@ -284,7 +295,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, "Unassigned tickets retrieved successfully.");
         }
 
 
@@ -298,7 +309,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AssignTicketToAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
@@ -307,7 +317,6 @@ namespace SupportTicketAPI.DataAccess
 
             command.Parameters.Add("@AgentId", SqlDbType.Int)
                 .Value = agentId;
-
 
             await connection.OpenAsync();
 
@@ -319,29 +328,40 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<bool>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<bool>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<bool>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<bool>.NotFound(
+                            "Ticket not found."),
 
-                    "Agent not found or inactive." =>
-                        ServiceResult<bool>.NotFound(message),
+                    DatabaseResultCodes.AgentNotFoundOrInactive =>
+                        ServiceResult<bool>.NotFound(
+                            "Agent not found or inactive."),
 
-                    "Closed tickets cannot be assigned." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.ClosedTicketCannotBeAssigned =>
+                        ServiceResult<bool>.Conflict(
+                            "Closed tickets cannot be assigned."),
 
-                    _ => ServiceResult<bool>.Failure(message)
+                    _ =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to assign ticket to agent.")
                 };
             }
 
-            return ServiceResult<bool>.Success(true, message);
+            string successMessage =
+                resultCode == DatabaseResultCodes.TicketAlreadyAssignedToAgent
+                    ? "Ticket is already assigned to this agent."
+                    : "Ticket assigned to agent successfully.";
+
+            return ServiceResult<bool>.Success(true, successMessage);
         }
 
 
@@ -355,7 +375,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminUpdateTicketStatus", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
@@ -364,7 +383,6 @@ namespace SupportTicketAPI.DataAccess
 
             command.Parameters.Add("@Status", SqlDbType.NVarChar, 50)
                 .Value = status;
-
 
             await connection.OpenAsync();
 
@@ -376,35 +394,48 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<bool>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<bool>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<bool>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<bool>.NotFound(
+                            "Ticket not found."),
 
-                    "Invalid ticket status." =>
-                        ServiceResult<bool>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidTicketStatus =>
+                        ServiceResult<bool>.ValidationFailure(
+                            "Invalid ticket status."),
 
-                    "Closed tickets cannot be updated." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.ClosedTicketCannotBeUpdated =>
+                        ServiceResult<bool>.Conflict(
+                            "Closed tickets cannot be updated."),
 
-                    "An assigned ticket cannot be moved to Open." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.AssignedTicketCannotBeMovedToOpen =>
+                        ServiceResult<bool>.Conflict(
+                            "An assigned ticket cannot be moved to Open."),
 
-                    "The ticket must be assigned before using this status." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.TicketMustBeAssignedForStatus =>
+                        ServiceResult<bool>.Conflict(
+                            "The ticket must be assigned before using this status."),
 
-                    _ => ServiceResult<bool>.Failure(message)
+                    _ =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to update ticket status.")
                 };
             }
 
-            return ServiceResult<bool>.Success(true, message);
+            string successMessage =
+                resultCode == DatabaseResultCodes.TicketAlreadyHasRequestedStatus
+                    ? "Ticket already has the requested status."
+                    : "Ticket status updated successfully.";
+
+            return ServiceResult<bool>.Success(true, successMessage);
         }
 
 
@@ -421,7 +452,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AdminGetTicketsByAgent", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AdminId", SqlDbType.Int)
                 .Value = adminId;
 
@@ -434,7 +464,6 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@PageSize", SqlDbType.Int)
                 .Value = pageSize;
 
-
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -446,26 +475,31 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Admin not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+                    DatabaseResultCodes.AdminNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(
+                            "Admin not found or inactive."),
 
-                    "Agent not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>.NotFound(message),
+                    DatabaseResultCodes.AgentNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.NotFound(
+                            "Agent not found or inactive."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
                     _ =>
-                        ServiceResult<PagedResult<Ticket>>.Failure(message)
+                        ServiceResult<PagedResult<Ticket>>.Failure(
+                            "Failed to retrieve agent tickets.")
                 };
             }
 
@@ -510,7 +544,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, "Agent tickets retrieved successfully.");
         }
 
     }
