@@ -21,7 +21,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Agent not found or inactive.' AS Message;
+            CAST('AGENT_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -44,7 +44,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -55,7 +55,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Invalid ticket status.' AS Message;
+                CAST('INVALID_TICKET_STATUS' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -66,7 +66,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Closed tickets cannot be updated.' AS Message;
+                CAST('CLOSED_TICKET_CANNOT_BE_UPDATED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -79,7 +79,7 @@ BEGIN
 
             SELECT
                 CAST(1 AS BIT) AS IsSuccess,
-                'Ticket already has the requested status.' AS Message;
+                CAST('TICKET_ALREADY_HAS_REQUESTED_STATUS' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -90,7 +90,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Resolved tickets cannot be updated by the agent.' AS Message;
+                CAST('RESOLVED_TICKET_CANNOT_BE_UPDATED_BY_AGENT' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -103,7 +103,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Only an assigned ticket can be moved to InProgress.' AS Message;
+                CAST('ONLY_ASSIGNED_TICKET_CAN_MOVE_TO_IN_PROGRESS' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -116,7 +116,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket must be InProgress before it can be resolved.' AS Message;
+                CAST('TICKET_MUST_BE_IN_PROGRESS_BEFORE_RESOLVED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -136,7 +136,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -179,6 +179,6 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket status updated successfully.' AS Message;
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 END
 GO

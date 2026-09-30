@@ -94,5 +94,14 @@
         public const string TicketAlreadyHasRequestedStatus =
             "TICKET_ALREADY_HAS_REQUESTED_STATUS";
 
+        public const string ResolvedTicketCannotBeUpdatedByAgent =
+            "RESOLVED_TICKET_CANNOT_BE_UPDATED_BY_AGENT";
+
+        public const string OnlyAssignedTicketCanMoveToInProgress =
+            "ONLY_ASSIGNED_TICKET_CAN_MOVE_TO_IN_PROGRESS";
+
+        public const string TicketMustBeInProgressBeforeResolved =
+            "TICKET_MUST_BE_IN_PROGRESS_BEFORE_RESOLVED";
+
     }
 }

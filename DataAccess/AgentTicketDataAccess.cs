@@ -48,23 +48,27 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Agent not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>.Forbidden(message),
+                    DatabaseResultCodes.AgentNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(
+                            "Agent not found or inactive."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
                     _ =>
-                        ServiceResult<PagedResult<Ticket>>.Failure(message)
+                        ServiceResult<PagedResult<Ticket>>.Failure(
+                            "Failed to retrieve assigned tickets.")
                 };
             }
 
@@ -109,7 +113,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, "Assigned tickets retrieved successfully.");
         }
 
 
@@ -122,13 +126,11 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AgentGetAssignedTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AgentId", SqlDbType.Int)
                 .Value = agentId;
 
             command.Parameters.Add("@TicketId", SqlDbType.Int)
                 .Value = ticketId;
-
 
             await connection.OpenAsync();
 
@@ -140,20 +142,23 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Agent not found or inactive." =>
-                        ServiceResult<Ticket>.Forbidden(message),
+                    DatabaseResultCodes.AgentNotFoundOrInactive =>
+                        ServiceResult<Ticket>.Forbidden(
+                            "Agent not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<Ticket>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<Ticket>.NotFound(
+                            "Ticket not found."),
 
                     _ =>
-                        ServiceResult<Ticket>.Failure(message)
+                        ServiceResult<Ticket>.Failure(
+                            "Failed to retrieve ticket details.")
                 };
             }
 
@@ -192,7 +197,7 @@ namespace SupportTicketAPI.DataAccess
                     : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
             };
 
-            return ServiceResult<Ticket>.Success(ticket, message);
+            return ServiceResult<Ticket>.Success(ticket, "Ticket details retrieved successfully.");
         }
 
 
@@ -206,7 +211,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AgentUpdateAssignedTicketStatus", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@AgentId", SqlDbType.Int)
                 .Value = agentId;
 
@@ -215,7 +219,6 @@ namespace SupportTicketAPI.DataAccess
 
             command.Parameters.Add("@Status", SqlDbType.NVarChar, 50)
                 .Value = status;
-
 
             await connection.OpenAsync();
 
@@ -227,39 +230,52 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Agent not found or inactive." =>
-                        ServiceResult<bool>.Forbidden(message),
+                    DatabaseResultCodes.AgentNotFoundOrInactive =>
+                        ServiceResult<bool>.Forbidden(
+                            "Agent not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<bool>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<bool>.NotFound(
+                            "Ticket not found."),
 
-                    "Invalid ticket status." =>
-                        ServiceResult<bool>.ValidationFailure(message),
+                    DatabaseResultCodes.InvalidTicketStatus =>
+                        ServiceResult<bool>.ValidationFailure(
+                            "Invalid ticket status."),
 
-                    "Closed tickets cannot be updated." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.ClosedTicketCannotBeUpdated =>
+                        ServiceResult<bool>.Conflict(
+                            "Closed tickets cannot be updated."),
 
-                    "Resolved tickets cannot be updated by the agent." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.ResolvedTicketCannotBeUpdatedByAgent =>
+                        ServiceResult<bool>.Conflict(
+                            "Resolved tickets cannot be updated by the agent."),
 
-                    "Only an assigned ticket can be moved to InProgress." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.OnlyAssignedTicketCanMoveToInProgress =>
+                        ServiceResult<bool>.Conflict(
+                            "Only an assigned ticket can be moved to InProgress."),
 
-                    "Ticket must be InProgress before it can be resolved." =>
-                        ServiceResult<bool>.Conflict(message),
+                    DatabaseResultCodes.TicketMustBeInProgressBeforeResolved =>
+                        ServiceResult<bool>.Conflict(
+                            "Ticket must be InProgress before it can be resolved."),
 
                     _ =>
-                        ServiceResult<bool>.Failure(message)
+                        ServiceResult<bool>.Failure(
+                            "Failed to update ticket status.")
                 };
             }
 
-            return ServiceResult<bool>.Success(true, message);
+            string successMessage =
+                resultCode == DatabaseResultCodes.TicketAlreadyHasRequestedStatus
+                    ? "Ticket already has the requested status."
+                    : "Ticket status updated successfully.";
+
+            return ServiceResult<bool>.Success(true, successMessage);
         }
 
     }
