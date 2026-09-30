@@ -27,7 +27,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_AddTicketComment", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@UserId", SqlDbType.Int)
                 .Value = userId;
 
@@ -36,7 +35,6 @@ namespace SupportTicketAPI.DataAccess
 
             command.Parameters.Add("@CommentText", SqlDbType.NVarChar, 1000)
                 .Value = commentText;
-
 
             await connection.OpenAsync();
 
@@ -48,35 +46,41 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Comment text is required." =>
-                        ServiceResult<int>.ValidationFailure(message),
+                    DatabaseResultCodes.CommentTextRequired =>
+                        ServiceResult<int>.ValidationFailure(
+                            "Comment text is required."),
 
-                    "User not found or inactive." =>
-                        ServiceResult<int>.Forbidden(message),
+                    DatabaseResultCodes.UserNotFoundOrInactive =>
+                        ServiceResult<int>.Forbidden(
+                            "User not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<int>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<int>.NotFound(
+                            "Ticket not found."),
 
-                    "Comments cannot be added to a closed ticket." =>
-                        ServiceResult<int>.Conflict(message),
+                    DatabaseResultCodes.ClosedTicketCannotBeCommented =>
+                        ServiceResult<int>.Conflict(
+                            "Comments cannot be added to a closed ticket."),
 
-                    "You are not authorized to add comments to this ticket." =>
-                        ServiceResult<int>.Forbidden(message),
+                    DatabaseResultCodes.TicketCommentAddForbidden =>
+                        ServiceResult<int>.Forbidden(
+                            "You are not authorized to add comments to this ticket."),
 
                     _ =>
-                        ServiceResult<int>.Failure(message)
+                        ServiceResult<int>.Failure(
+                            "Failed to add comment.")
                 };
             }
 
             int commentId = reader.GetInt32(reader.GetOrdinal("CommentId"));
 
-            return ServiceResult<int>.Success(commentId, message);
+            return ServiceResult<int>.Success(commentId, "Comment added successfully.");
         }
 
 
@@ -107,23 +111,27 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "User not found or inactive." =>
-                        ServiceResult<List<TicketComment>>.Forbidden(message),
+                    DatabaseResultCodes.UserNotFoundOrInactive =>
+                        ServiceResult<List<TicketComment>>.Forbidden(
+                            "User not found or inactive."),
 
-                    "Ticket not found." =>
-                        ServiceResult<List<TicketComment>>.NotFound(message),
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<List<TicketComment>>.NotFound(
+                            "Ticket not found."),
 
-                    "You do not have permission to view comments for this ticket." =>
-                        ServiceResult<List<TicketComment>>.Forbidden(message),
+                    DatabaseResultCodes.TicketCommentReadForbidden =>
+                        ServiceResult<List<TicketComment>>.Forbidden(
+                            "You do not have permission to view comments for this ticket."),
 
                     _ =>
-                        ServiceResult<List<TicketComment>>.Failure(message)
+                        ServiceResult<List<TicketComment>>.Failure(
+                            "Failed to retrieve ticket comments.")
                 };
             }
 
@@ -145,7 +153,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<List<TicketComment>>.Success(comments, message);
+            return ServiceResult<List<TicketComment>>.Success(comments, "Ticket comments retrieved successfully.");
         }
 
 
@@ -170,16 +178,20 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                if (message == "Ticket not found.")
+                return resultCode switch
                 {
-                    return ServiceResult<TicketAccessInfo>.NotFound(message);
-                }
+                    DatabaseResultCodes.TicketNotFound =>
+                        ServiceResult<TicketAccessInfo>.NotFound(
+                            "Ticket not found."),
 
-                return ServiceResult<TicketAccessInfo>.Failure(message);
+                    _ =>
+                        ServiceResult<TicketAccessInfo>.Failure(
+                            "Failed to retrieve ticket access info.")
+                };
             }
 
             if (!await reader.NextResultAsync() ||
@@ -201,7 +213,7 @@ namespace SupportTicketAPI.DataAccess
                 Status = reader.GetString(reader.GetOrdinal("Status"))
             };
 
-            return ServiceResult<TicketAccessInfo>.Success(ticketAccessInfo, message);
+            return ServiceResult<TicketAccessInfo>.Success(ticketAccessInfo, "Ticket access information retrieved successfully.");
         }
 
     }

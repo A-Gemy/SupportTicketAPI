@@ -28,7 +28,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'User not found or inactive.' AS Message;
+                CAST('USER_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -45,7 +45,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -57,7 +57,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You do not have permission to view comments for this ticket.' AS Message;
+                CAST('TICKET_COMMENT_READ_FORBIDDEN' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -69,7 +69,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You do not have permission to view comments for this ticket.' AS Message;
+                CAST('TICKET_COMMENT_READ_FORBIDDEN' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -80,14 +80,14 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You do not have permission to view comments for this ticket.' AS Message;
+                CAST('TICKET_COMMENT_READ_FORBIDDEN' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
 
         SELECT
             CAST(1 AS BIT) AS IsSuccess,
-            'Ticket comments retrieved successfully.' AS Message;
+            CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 
         SELECT
             tc.CommentId,

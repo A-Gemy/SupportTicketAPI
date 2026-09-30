@@ -14,7 +14,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Comment text is required.' AS Message,
+            CAST('COMMENT_TEXT_REQUIRED' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS CommentId;
 
         RETURN;
@@ -42,7 +42,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'User not found or inactive.' AS Message,
+                CAST('USER_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -61,7 +61,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message,
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -73,7 +73,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Comments cannot be added to a closed ticket.' AS Message,
+                CAST('CLOSED_TICKET_CANNOT_BE_COMMENTED' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -86,7 +86,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You are not authorized to add comments to this ticket.' AS Message,
+                CAST('TICKET_COMMENT_ADD_FORBIDDEN' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -99,7 +99,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You are not authorized to add comments to this ticket.' AS Message,
+                CAST('TICKET_COMMENT_ADD_FORBIDDEN' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -111,7 +111,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'You are not authorized to add comments to this ticket.' AS Message,
+                CAST('TICKET_COMMENT_ADD_FORBIDDEN' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -146,7 +146,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message,
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS CommentId;
 
             RETURN;
@@ -188,7 +188,7 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Comment added successfully.' AS Message,
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
         @CommentId AS CommentId;
 END
 GO

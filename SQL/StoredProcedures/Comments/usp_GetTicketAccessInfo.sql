@@ -16,14 +16,14 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Ticket not found.' AS Message;
+            CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket access information retrieved successfully.' AS Message;
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
 
     SELECT
         TicketId,

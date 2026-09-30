@@ -103,5 +103,20 @@
         public const string TicketMustBeInProgressBeforeResolved =
             "TICKET_MUST_BE_IN_PROGRESS_BEFORE_RESOLVED";
 
+        public const string CommentTextRequired =
+            "COMMENT_TEXT_REQUIRED";
+
+        public const string UserNotFoundOrInactive =
+            "USER_NOT_FOUND_OR_INACTIVE";
+
+        public const string ClosedTicketCannotBeCommented =
+            "CLOSED_TICKET_CANNOT_BE_COMMENTED";
+
+        public const string TicketCommentAddForbidden =
+            "TICKET_COMMENT_ADD_FORBIDDEN";
+
+        public const string TicketCommentReadForbidden =
+            "TICKET_COMMENT_READ_FORBIDDEN";
+
     }
 }
