@@ -26,7 +26,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Refresh token not found.' AS Message;
+                CAST('REFRESH_TOKEN_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END;
@@ -37,7 +37,7 @@ BEGIN
 
             SELECT
                 CAST(1 AS BIT) AS IsSuccess,
-                'Refresh token is already revoked.' AS Message;
+                CAST('REFRESH_TOKEN_ALREADY_REVOKED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END;
@@ -52,7 +52,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Failed to revoke refresh token.' AS Message;
+                CAST('REFRESH_TOKEN_REVOCATION_FAILED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END;
@@ -61,7 +61,7 @@ BEGIN
 
         SELECT
             CAST(1 AS BIT) AS IsSuccess,
-            'Refresh token revoked successfully.' AS Message;
+            CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0

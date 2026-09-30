@@ -30,7 +30,7 @@ BEGIN
 
         SELECT
             CAST(1 AS BIT) AS IsSuccess,
-            'Customer registered successfully.' AS Message,
+            CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
             CAST(SCOPE_IDENTITY() AS INT) AS UserId;
     END TRY
     BEGIN CATCH
@@ -38,7 +38,7 @@ BEGIN
         BEGIN
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Email already exists.' AS Message,
+                CAST('EMAIL_ALREADY_EXISTS' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS UserId;
 
             RETURN;

@@ -15,7 +15,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Old refresh token hash is required.' AS Message,
+            CAST('OLD_REFRESH_TOKEN_HASH_REQUIRED' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS UserId,
             CAST(NULL AS NVARCHAR(100)) AS FullName,
             CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -30,7 +30,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'New refresh token hash is required.' AS Message,
+            CAST('NEW_REFRESH_TOKEN_HASH_REQUIRED' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS UserId,
             CAST(NULL AS NVARCHAR(100)) AS FullName,
             CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -44,7 +44,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'New refresh token expiration must be in the future.' AS Message,
+            CAST('INVALID_REFRESH_TOKEN_EXPIRATION' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS UserId,
             CAST(NULL AS NVARCHAR(100)) AS FullName,
             CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -87,7 +87,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Invalid refresh token.' AS Message,
+                CAST('INVALID_REFRESH_TOKEN' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS UserId,
                 CAST(NULL AS NVARCHAR(100)) AS FullName,
                 CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -103,7 +103,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Refresh token has been revoked.' AS Message,
+                CAST('REFRESH_TOKEN_REVOKED' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS UserId,
                 CAST(NULL AS NVARCHAR(100)) AS FullName,
                 CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -119,7 +119,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Refresh token has expired.' AS Message,
+                CAST('REFRESH_TOKEN_EXPIRED' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS UserId,
                 CAST(NULL AS NVARCHAR(100)) AS FullName,
                 CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -135,7 +135,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'This account is inactive.' AS Message,
+                CAST('ACCOUNT_INACTIVE' AS VARCHAR(50)) AS ResultCode,
                 CAST(NULL AS INT) AS UserId,
                 CAST(NULL AS NVARCHAR(100)) AS FullName,
                 CAST(NULL AS NVARCHAR(150)) AS Email,
@@ -169,7 +169,7 @@ BEGIN
 
         SELECT
             CAST(1 AS BIT) AS IsSuccess,
-            'Token refreshed successfully.' AS Message,
+            CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
             @UserId AS UserId,
             @FullName AS FullName,
             @Email AS Email,

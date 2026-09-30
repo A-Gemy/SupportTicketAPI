@@ -24,7 +24,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_RegisterCustomer", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@FullName", SqlDbType.NVarChar, 100)
                 .Value = fullName;
 
@@ -34,7 +33,6 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar, 500)
                 .Value = passwordHash;
 
-
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -42,20 +40,22 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message")) ?? string.Empty;
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
                 if (!isSuccess)
                 {
-                    if (message == "Email already exists.")
+                    return resultCode switch
                     {
-                        return ServiceResult<int>.Conflict(message);
-                    }
-                    return ServiceResult<int>.Failure(message);
+                        DatabaseResultCodes.EmailAlreadyExists =>
+                            ServiceResult<int>.Conflict("Email already exists."),
+
+                        _ => ServiceResult<int>.Failure("Registration failed.")
+                    };
                 }
 
                 int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
 
-                return ServiceResult<int>.Success(userId, message);
+                return ServiceResult<int>.Success(userId, "Customer registered successfully.");
             }
 
             return ServiceResult<int>.Failure("Registration failed.");
@@ -111,7 +111,6 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar, 500)
                 .Value = passwordHash;
 
-
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -119,26 +118,26 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
                 if (!isSuccess)
                 {
-                    return message switch
+                    return resultCode switch
                     {
-                        "Admin not found or inactive." =>
-                            ServiceResult<int>.Forbidden(message),
+                        DatabaseResultCodes.AdminNotFoundOrInactive =>
+                            ServiceResult<int>.Forbidden("Admin not found or inactive."),
 
-                        "Email already exists." =>
-                            ServiceResult<int>.Conflict(message),
+                        DatabaseResultCodes.EmailAlreadyExists =>
+                            ServiceResult<int>.Conflict("Email already exists."),
 
                         _ =>
-                            ServiceResult<int>.Failure(message)
+                            ServiceResult<int>.Failure("Failed to create agent.")
                     };
                 }
 
                 int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
 
-                return ServiceResult<int>.Success(userId, message);
+                return ServiceResult<int>.Success(userId, "Agent created successfully.");
             }
 
             return ServiceResult<int>.Failure("Failed to create agent.");
@@ -151,7 +150,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_SaveRefreshToken", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@UserId", SqlDbType.Int)
                 .Value = userId;
 
@@ -161,7 +159,6 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@ExpiresAt", SqlDbType.DateTime2)
                 .Value = expiresAt;
 
-
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -169,16 +166,23 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
-                int refreshTokenId = reader.IsDBNull(reader.GetOrdinal("RefreshTokenId"))
-                    ? 0
-                    : reader.GetInt32(reader.GetOrdinal("RefreshTokenId"));
+                if (!isSuccess)
+                {
+                    return resultCode switch
+                    {
+                        DatabaseResultCodes.UserNotFound =>
+                            ServiceResult<int>.Failure("User not found."),
 
-                if (isSuccess)
-                    return ServiceResult<int>.Success(refreshTokenId, message);
+                        _ =>
+                            ServiceResult<int>.Failure("Failed to save refresh token.")
+                    };
+                }
 
-                return ServiceResult<int>.Failure(message);
+                int refreshTokenId = reader.GetInt32(reader.GetOrdinal("RefreshTokenId"));
+
+                return ServiceResult<int>.Success(refreshTokenId, "Refresh token saved successfully.");
             }
 
             return ServiceResult<int>.Failure("Failed to save refresh token.");
@@ -250,43 +254,43 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
                 if (!isSuccess)
                 {
-                    return message switch
+                    return resultCode switch
                     {
-                        "Old refresh token hash is required." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .ValidationFailure(message),
+                        DatabaseResultCodes.OldRefreshTokenHashRequired =>
+                            ServiceResult<RefreshTokenRotationResult>.ValidationFailure(
+                                "Old refresh token hash is required."),
 
-                        "New refresh token hash is required." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .ValidationFailure(message),
+                        DatabaseResultCodes.NewRefreshTokenHashRequired =>
+                            ServiceResult<RefreshTokenRotationResult>.ValidationFailure(
+                                "New refresh token hash is required."),
 
-                        "New refresh token expiration must be in the future." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .ValidationFailure(message),
+                        DatabaseResultCodes.InvalidRefreshTokenExpiration =>
+                            ServiceResult<RefreshTokenRotationResult>.ValidationFailure(
+                                "New refresh token expiration must be in the future."),
 
-                        "Invalid refresh token." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .Unauthorized(message),
+                        DatabaseResultCodes.InvalidRefreshToken =>
+                            ServiceResult<RefreshTokenRotationResult>.Unauthorized(
+                                "Invalid refresh token."),
 
-                        "Refresh token has been revoked." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .Unauthorized(message),
+                        DatabaseResultCodes.RefreshTokenRevoked =>
+                            ServiceResult<RefreshTokenRotationResult>.Unauthorized(
+                                "Refresh token has been revoked."),
 
-                        "Refresh token has expired." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .Unauthorized(message),
+                        DatabaseResultCodes.RefreshTokenExpired =>
+                            ServiceResult<RefreshTokenRotationResult>.Unauthorized(
+                                "Refresh token has expired."),
 
-                        "This account is inactive." =>
-                            ServiceResult<RefreshTokenRotationResult>
-                                .Forbidden(message),
+                        DatabaseResultCodes.AccountInactive =>
+                            ServiceResult<RefreshTokenRotationResult>.Forbidden(
+                                "This account is inactive."),
 
                         _ =>
                             ServiceResult<RefreshTokenRotationResult>
-                                .Failure(message)
+                                .Failure("Failed to rotate refresh token.")
                     };
                 }
 
@@ -299,7 +303,7 @@ namespace SupportTicketAPI.DataAccess
                     RefreshTokenId = reader.GetInt32(reader.GetOrdinal("RefreshTokenId"))
                 };
 
-                return ServiceResult<RefreshTokenRotationResult>.Success(rotationResult, message);
+                return ServiceResult<RefreshTokenRotationResult>.Success(rotationResult, "Token refreshed successfully.");
             }
 
             return ServiceResult<RefreshTokenRotationResult>.Failure("Failed to rotate refresh token.");
@@ -322,12 +326,33 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
                 if (isSuccess)
-                    return ServiceResult<bool>.Success(true, message);
+                {
+                    string successMessage =
+                        resultCode ==
+                        DatabaseResultCodes.RefreshTokenAlreadyRevoked
+                            ? "Refresh token is already revoked."
+                            : "Refresh token revoked successfully.";
 
-                return ServiceResult<bool>.Failure(message);
+                    return ServiceResult<bool>.Success(true,successMessage);
+                }
+
+                return resultCode switch
+                {
+                    DatabaseResultCodes.RefreshTokenNotFound =>
+                        ServiceResult<bool>.Failure(
+                            "Refresh token not found."),
+
+                    DatabaseResultCodes.RefreshTokenRevocationFailed =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to revoke refresh token."),
+
+                    _ =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to revoke refresh token.")
+                };
             }
 
             return ServiceResult<bool>.Failure("Failed to revoke refresh token.");
