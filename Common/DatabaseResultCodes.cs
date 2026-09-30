@@ -42,5 +42,27 @@
 
         public const string RefreshTokenRevocationFailed =
             "REFRESH_TOKEN_REVOCATION_FAILED";
+
+        public const string CustomerNotFoundOrInactive =
+            "CUSTOMER_NOT_FOUND_OR_INACTIVE";
+
+        public const string InvalidPriority =
+            "INVALID_PRIORITY";
+
+        public const string InvalidPageNumber =
+            "INVALID_PAGE_NUMBER";
+
+        public const string InvalidPageSize =
+            "INVALID_PAGE_SIZE";
+
+        public const string TicketNotFound =
+            "TICKET_NOT_FOUND";
+
+        public const string TicketAlreadyClosed =
+            "TICKET_ALREADY_CLOSED";
+
+        public const string TicketCloseFailed =
+            "TICKET_CLOSE_FAILED";
+
     }
 }

@@ -20,7 +20,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Customer not found or inactive.' AS Message;
+            CAST('CUSTOMER_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode;
 
         RETURN;
     END
@@ -43,7 +43,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket not found.' AS Message;
+                CAST('TICKET_NOT_FOUND' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -54,7 +54,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Ticket is already closed.' AS Message;
+                CAST('TICKET_ALREADY_CLOSED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -75,7 +75,7 @@ BEGIN
 
             SELECT
                 CAST(0 AS BIT) AS IsSuccess,
-                'Failed to close ticket.' AS Message;
+                CAST('TICKET_CLOSE_FAILED' AS VARCHAR(50)) AS ResultCode;
 
             RETURN;
         END
@@ -109,7 +109,7 @@ BEGIN
 
         SELECT
             CAST(1 AS BIT) AS IsSuccess,
-            'Ticket closed successfully.' AS Message;
+            CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0

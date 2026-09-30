@@ -28,7 +28,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_CreateTicket", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@CustomerId", SqlDbType.Int)
                 .Value = customerId;
 
@@ -41,7 +40,6 @@ namespace SupportTicketAPI.DataAccess
             command.Parameters.Add("@Priority", SqlDbType.NVarChar, 20)
                 .Value = priority;
 
-
             await connection.OpenAsync();
 
             using SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -49,27 +47,29 @@ namespace SupportTicketAPI.DataAccess
             if (await reader.ReadAsync())
             {
                 bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-                string message = reader.GetString(reader.GetOrdinal("Message"));
-
-                int ticketId = reader.IsDBNull(reader.GetOrdinal("TicketId"))
-                    ? 0
-                    : reader.GetInt32(reader.GetOrdinal("TicketId"));
+                string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
                 if (!isSuccess)
                 {
-                    return message switch
+                    return resultCode switch
                     {
-                        "Customer not found or inactive." =>
-                             ServiceResult<int>.Forbidden(message),
+                        DatabaseResultCodes.CustomerNotFoundOrInactive =>
+                            ServiceResult<int>.Forbidden(
+                                "Customer not found or inactive."),
 
-                        "Invalid priority." =>
-                            ServiceResult<int>.ValidationFailure(message),
+                        DatabaseResultCodes.InvalidPriority =>
+                            ServiceResult<int>.ValidationFailure(
+                                "Invalid priority."),
 
-                        _ => ServiceResult<int>.Failure(message),
+                        _ =>
+                            ServiceResult<int>.Failure(
+                                "Failed to create ticket.")
                     };
                 }
 
-                return ServiceResult<int>.Success(ticketId, message);
+                int ticketId = reader.GetInt32(reader.GetOrdinal("TicketId"));
+
+                return ServiceResult<int>.Success(ticketId, "Ticket created successfully.");
             }
 
             return ServiceResult<int>.Failure("Failed to create ticket.");
@@ -88,7 +88,6 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetCustomerTickets", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@CustomerId", SqlDbType.Int)
                 .Value = customerId;
 
@@ -97,7 +96,6 @@ namespace SupportTicketAPI.DataAccess
 
             command.Parameters.Add("@PageSize", SqlDbType.Int)
                 .Value = pageSize;
-
 
             await connection.OpenAsync();
 
@@ -109,27 +107,27 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Customer not found or inactive." =>
-                        ServiceResult<PagedResult<Ticket>>
-                            .Forbidden(message),
+                    DatabaseResultCodes.CustomerNotFoundOrInactive =>
+                        ServiceResult<PagedResult<Ticket>>.Forbidden(
+                            "Customer not found or inactive."),
 
-                    "Page number must be greater than or equal to 1." =>
-                        ServiceResult<PagedResult<Ticket>>
-                            .ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageNumber =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page number must be greater than or equal to 1."),
 
-                    "Page size must be between 1 and 100." =>
-                        ServiceResult<PagedResult<Ticket>>
-                            .ValidationFailure(message),
+                    DatabaseResultCodes.InvalidPageSize =>
+                        ServiceResult<PagedResult<Ticket>>.ValidationFailure(
+                            "Page size must be between 1 and 100."),
 
                     _ =>
-                        ServiceResult<PagedResult<Ticket>>
-                            .Failure(message)
+                        ServiceResult<PagedResult<Ticket>>.Failure(
+                            "Failed to retrieve customer tickets.")
                 };
             }
 
@@ -164,7 +162,7 @@ namespace SupportTicketAPI.DataAccess
                 }
             }
 
-            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, message);
+            return ServiceResult<PagedResult<Ticket>>.Success(pagedResult, "Customer tickets retrieved successfully.");
         }
 
 
@@ -177,13 +175,11 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_GetCustomerTicketDetails", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@CustomerId", SqlDbType.Int)
                 .Value = customerId;
 
             command.Parameters.Add("@TicketId", SqlDbType.Int)
                 .Value = ticketId;
-
 
             await connection.OpenAsync();
 
@@ -195,23 +191,23 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Customer not found or inactive." =>
+                    DatabaseResultCodes.CustomerNotFoundOrInactive =>
                         ServiceResult<Ticket?>.Forbidden(
-                            message),
+                            "Customer not found or inactive."),
 
-                    "Ticket not found." =>
+                    DatabaseResultCodes.TicketNotFound =>
                         ServiceResult<Ticket?>.NotFound(
-                            message),
+                            "Ticket not found."),
 
                     _ =>
                         ServiceResult<Ticket?>.Failure(
-                            message)
+                            "Failed to retrieve ticket details.")
                 };
             }
 
@@ -241,7 +237,7 @@ namespace SupportTicketAPI.DataAccess
                     : reader.GetDateTime(reader.GetOrdinal("ClosedAt"))
             };
 
-            return ServiceResult<Ticket?>.Success(ticket, message);
+            return ServiceResult<Ticket?>.Success(ticket, "Ticket details retrieved successfully.");
         }
 
 
@@ -254,13 +250,11 @@ namespace SupportTicketAPI.DataAccess
             using SqlCommand command = new("usp_CloseCustomerTicket", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-
             command.Parameters.Add("@CustomerId", SqlDbType.Int)
                 .Value = customerId;
 
             command.Parameters.Add("@TicketId", SqlDbType.Int)
                 .Value = ticketId;
-
 
             await connection.OpenAsync();
 
@@ -272,29 +266,35 @@ namespace SupportTicketAPI.DataAccess
             }
 
             bool isSuccess = reader.GetBoolean(reader.GetOrdinal("IsSuccess"));
-            string message = reader.GetString(reader.GetOrdinal("Message"));
+            string resultCode = reader.GetString(reader.GetOrdinal("ResultCode"));
 
             if (!isSuccess)
             {
-                return message switch
+                return resultCode switch
                 {
-                    "Customer not found or inactive." =>
+                    DatabaseResultCodes.CustomerNotFoundOrInactive =>
                         ServiceResult<bool>.Forbidden(
-                            message),
+                            "Customer not found or inactive."),
 
-                    "Ticket not found." =>
+                    DatabaseResultCodes.TicketNotFound =>
                         ServiceResult<bool>.NotFound(
-                            message),
+                            "Ticket not found."),
 
-                    "Ticket is already closed." =>
+                    DatabaseResultCodes.TicketAlreadyClosed =>
                         ServiceResult<bool>.Conflict(
-                            message),
+                            "Ticket is already closed."),
 
-                    _ => ServiceResult<bool>.Failure(message)
+                    DatabaseResultCodes.TicketCloseFailed =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to close ticket."),
+
+                    _ =>
+                        ServiceResult<bool>.Failure(
+                            "Failed to close ticket.")
                 };
             }
 
-            return ServiceResult<bool>.Success(true, message);
+            return ServiceResult<bool>.Success(true, "Ticket closed successfully.");
         }
 
     }

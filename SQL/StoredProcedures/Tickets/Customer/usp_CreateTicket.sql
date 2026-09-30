@@ -22,7 +22,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Customer not found or inactive.' AS Message,
+            CAST('CUSTOMER_NOT_FOUND_OR_INACTIVE' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS TicketId;
 
         RETURN;
@@ -32,7 +32,7 @@ BEGIN
     BEGIN
         SELECT
             CAST(0 AS BIT) AS IsSuccess,
-            'Invalid priority.' AS Message,
+            CAST('INVALID_PRIORITY' AS VARCHAR(50)) AS ResultCode,
             CAST(NULL AS INT) AS TicketId;
 
         RETURN;
@@ -107,7 +107,7 @@ BEGIN
 
     SELECT
         CAST(1 AS BIT) AS IsSuccess,
-        'Ticket created successfully.' AS Message,
+        CAST('SUCCESS' AS VARCHAR(50)) AS ResultCode,
         @TicketId AS TicketId;
 END
 GO
